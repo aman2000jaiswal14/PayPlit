@@ -11,38 +11,38 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.aman.payplit.ui.theme.PayPlitTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Thread.sleep(5000L)
+        Thread.sleep(2000L)
         enableEdgeToEdge()
         setContent {
             PayPlitTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                PayPlitNavigation()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun PayPlitNavigation(){
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PayPlitTheme {
-        Greeting("Android")
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "LoginPage"){
+        composable(route = "LoginPage"){
+            LoginPage(navController)
+        }
     }
 }
+//@Preview(showBackground = true)
+//@Composable
+//fun GreetingPreview() {
+//    PayPlitTheme {
+//        Greeting("Android")
+//    }
+//}
