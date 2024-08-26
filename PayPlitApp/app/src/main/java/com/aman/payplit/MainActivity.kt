@@ -19,7 +19,6 @@ import com.aman.payplit.ui.theme.PayPlitTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Thread.sleep(2000L)
         enableEdgeToEdge()
         setContent {
             PayPlitTheme {
@@ -37,7 +36,14 @@ fun PayPlitNavigation(){
         composable(route = "LoginPage"){
             LoginPage(navController)
         }
+        composable(route = "SignUpPage"){
+            SignUpPage(navController)
+        }
+        composable(route = "GroupPage"){
+            GroupPage(navController)
+        }
     }
+
 }
 //@Preview(showBackground = true)
 //@Composable

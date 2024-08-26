@@ -1,18 +1,24 @@
 package com.aman.payplit
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -39,16 +45,17 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginPage(navController: NavController){
-    val userName = remember{
+    val userEmail = remember{
         mutableStateOf("")
     }
     val password = remember{
         mutableStateOf("")
     }
     val passwordVisible = remember { mutableStateOf(false) }
+    val isDarkTheme = isSystemInDarkTheme()
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "Login Page", color = Color.White, fontSize = 20.sp) },
+            TopAppBar(title = { Text(text = "Login", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(id = R.color.purple_500)
                 )
@@ -61,10 +68,10 @@ fun LoginPage(navController: NavController){
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 
-                TextField(value = userName.value, onValueChange ={
-                    userName.value = it
+                TextField(value = userEmail.value, onValueChange ={
+                    userEmail.value = it
                 },
-                    label = { Text(text = "Enter username")},
+                    label = { Text(text = "Enter email")},
                     colors = TextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White,
@@ -74,13 +81,14 @@ fun LoginPage(navController: NavController){
                     ),
                     modifier = Modifier.size(300.dp,60.dp),
                     textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
-                    shape = RoundedCornerShape(5.dp)
+                    shape = RoundedCornerShape(5.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 TextField(value = password.value, onValueChange ={
                     password.value = it
                 },
-                    label = { Text(text = "Enter username")},
+                    label = { Text(text = "Enter Password")},
                     colors = TextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White,
@@ -102,10 +110,50 @@ fun LoginPage(navController: NavController){
                             }
                         }
                 )
-                Spacer(modifier = Modifier.height(50.dp))
-                Button(onClick = { navController.navigate("LoginPage") }) {
-                    Text(text = "Login")
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    Button(
+                        onClick = {navController.navigate("GroupPage")},
+                        modifier =
+                        Modifier
+                            .width(120.dp)
+                            .height(60.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isDarkTheme) Color.White else Color.Black,
+                            contentColor = if (isDarkTheme) Color.Black else Color.White,
+                        ),
+                        shape = RoundedCornerShape(5.dp),
+                    ) {
+                        Text(
+                            text = "LogIn",
+                            style = MaterialTheme.typography.bodyLarge
+
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Button(
+                        onClick = { navController.navigate("SignUpPage")},
+                        modifier =
+                        Modifier
+                            .width(120.dp)
+                            .height(60.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isDarkTheme) Color.White else Color.Black,
+                            contentColor = if (isDarkTheme) Color.Black else Color.White,
+                        ),
+                        shape = RoundedCornerShape(5.dp),
+                    ) {
+                        Text(
+                            text = "SignUp",
+                            style = MaterialTheme.typography.bodyLarge,
+
+                        )
+                    }
                 }
+
+
+
 
             }
         }
