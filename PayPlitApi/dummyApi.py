@@ -9,6 +9,54 @@ firebase_admin.initialize_app(cred,{"databaseURL": "https://kotlinfirebase-95de4
 
 app = Flask(__name__)
 
+'''
+groups =>
+{
+    groupId : String
+    groupName : String
+    groupMembers : List<String>
+}
+
+'''
+
+@app.route("/groups",methods=["GET"])
+def get_groups():
+    ref = db.reference("groups")
+    groups_data = ref.get()
+    groups = []
+    if(groups_data != None):
+        for group_id,group_info in groups_data.items():
+            groups.append({'groupId':group_id,'groupName': group_info['groupName'],'groupMembers':group_info['groupMembers']})
+    
+    return jsonify(groups),200
+
+
+@app.route("/groups/<group_id>",methods=["GET","POST"])
+def get_group(group_id):
+    try:
+        return jsonify(db.reference(f"groups").get()[group_id]),200
+    except Exception as e:
+        return f"Group Error : {e}",404
+
+@app.route("/groups/create",methods = ["POST"])
+def create_group():
+    data = request.get_json()
+    doc_ref = db.reference("groups")
+    new_doc_ref = doc_ref.push()
+    data["groupId"] = new_doc_ref.key
+    new_doc_ref.set(data)
+    return "group created",201
+    
+@app.route("/groups",methods=["DELETE"])
+def delete_group():
+    data = request.get_json()
+    groupId = data['groupId']
+    group_ref = db.reference(f'groups/{groupId}')
+    if(group_ref.get() is not None):
+        group_ref.delete()
+        return "deleted group succ",200
+    else:
+        return "not found",404       
 
 
 @app.route("/users")
