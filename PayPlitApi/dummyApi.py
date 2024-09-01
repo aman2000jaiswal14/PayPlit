@@ -16,14 +16,120 @@ groups =>
     groupName : String
     groupMembers : List<String> 
         :memberId : String
+    groupItems : List<String> 
+            :itemId : String
+}
+
+items =>
+{
+    itemId : String
+    itemName : String
+    itemGroupId : String
+    itemDateUpdate: String
+    itemTimeUpdate: String
+    itemTotalAmount: String
+    itemPayer : List<String>
+        :memberId: String
+    itemSpliter : List<String>
+        :memberId : String
+    ItemSpliterValue : List<String>
+        :itemValue: String
 }
 
 '''
 
 
 @app.route("/",methods=["GET"])
-def get_group1():
+def checkConnectivity():
     return "api running ok ",200
+
+@app.route("/items",methods=["GET"])
+def get_items():
+    ref = db.reference("items")
+    item_data = ref.get()
+    items = []
+    if(item_data != None):
+        for item_id,item_info in item_data.items():
+            item_dict = {'itemId' : item_info['itemId'],
+                         'itemName' : item_info['itemName'],
+                         'itemDateUpdate' : item_info['itemDateUpdate'],
+                         'itemTimeUpdate' : item_info['itemTimeUpdate'],
+                         'itemTotalAmount' : item_info['itemTotalAmount'],
+                         'itemPayer' : item_info['itemPayer'],
+                         'itemSpliter': item_info['itemSpliter'],
+                         'ItemSpliterValue' : item_info['ItemSpliterValue'],
+                         'itemGroupId' : item_info['itemGroupId']}
+            items.append(item_dict)
+    return jsonify(items),200
+
+@app.route("/items/create",methods=["POST"])
+def create_item():
+    data = request.get_json()
+    doc_ref = db.reference("items")
+    item_dict = dict(data)
+    if('itemName' in item_dict and
+       'itemDateUpdate' in item_dict and
+       'itemTimeUpdate' in item_dict and
+       'itemTotalAmount' in item_dict and
+       'itemPayer' in item_dict and
+       'itemSpliter' in item_dict and
+       'ItemSpliterValue' in item_dict and
+       'itemGroupId' in item_dict):
+        new_doc_ref = doc_ref.push()
+        data["itemId"] = new_doc_ref.key
+        new_doc_ref.set(data)
+        return "item created",201
+    else:
+        return "item key wrong",404
+
+@app.route("/items/<item_id>",methods = ["GET"])
+def get_item_by_id(item_id):
+    try:
+        return jsonify(db.reference(f"items").get()[item_id]),200
+    except Exception as e:
+        return f"Group Error : {e}",404
+
+@app.route("/items/update-item",methods = ["PUT"])
+def update_item():
+    data = request.get_json()
+    if("itemId" not in data):
+        return "itemId Error",404
+    itemId = data["itemId"]
+    doc_ref = db.reference("items")
+    item_data = doc_ref.get()
+    try:
+        if(itemId in item_data):
+            if("itemName" in data):
+                item_data[itemId]['itemName'] = data["itemName"]
+            if("itemPayer" in data):
+                item_data[itemId]['itemPayer'] = data["itemPayer"]
+            if("itemTotalAmount" in data):
+                item_data[itemId]['itemTotalAmount'] = data["itemTotalAmount"]
+            if("itemSpliter" in data and "itemSpliter" in data and "ItemSpliterValue" in data ):
+                item_data[itemId]['itemSpliter'] = data["itemSpliter"]
+                item_data[itemId]['itemSpliter'] = data["itemSpliter"]
+                item_data[itemId]['ItemSpliterValue'] = data["ItemSpliterValue"]
+                
+            doc_ref.set(item_data)
+            return "item updated",200
+        else:
+            return "item not found",404
+    except Exception as e:
+        return f"item update add error : {e}",404
+
+
+
+@app.route("/items",methods=["DELETE"])
+def delete_item():
+    data = request.get_json()
+    itemId = data['itemId']
+    item_ref = db.reference(f'items/{itemId}')
+    if(item_ref.get() is not None):
+        item_ref.delete()
+        return "deleted item succ",200
+    else:
+        return "item not found",404      
+    
 
 @app.route("/groups",methods=["GET"])
 def get_groups():
@@ -32,7 +138,18 @@ def get_groups():
     groups = []
     if(groups_data != None):
         for group_id,group_info in groups_data.items():
-            groups.append({'groupId':group_id,'groupName': group_info['groupName'],'groupMembers':group_info['groupMembers']})
+            group_dict = {'groupId':group_id,'groupName': group_info['groupName']}
+            if('groupMembers' in group_info):
+                group_dict['groupMembers'] = group_info['groupMembers']
+            else:
+                group_dict['groupMembers'] = []
+            
+            if('groupItems' in group_info):
+                group_dict['groupItems'] = group_info['groupItems']
+            else:
+                group_dict['groupItems'] = []
+            
+            groups.append(group_dict)
     
     return jsonify(groups),200
 
@@ -53,18 +170,39 @@ def create_group():
     new_doc_ref.set(data)
     return "group created",201
 
-@app.route("/groups/<group_id>",methods = ["PUT"])
+@app.route("/groups/addMember/<group_id>",methods = ["PUT"])
 def add_member_to_group(group_id):
     data = request.get_json()
     doc_ref = db.reference("groups")
     group_data = doc_ref.get()
     try:
         if(group_id in group_data):
+            if('groupMembers' not in group_data[group_id]):
+                group_data[group_id]['groupMembers'] = []
+                
             group_data[group_id]['groupMembers'].append(data['memberId'])
             doc_ref.set(group_data)
             return "Member added",200
+        else:
+            return "group not found",404
     except Exception as e:
         return f"Memeber add error : {e}",404
+    
+@app.route("/groups/addItem/<group_id>",methods = ["PUT"])
+def add_item_to_group(group_id):
+    data = request.get_json()
+    doc_ref = db.reference("groups")
+    group_data = doc_ref.get()
+    try:
+        if(group_id in group_data):
+            if('itemId' not in group_data[group_id]):
+                group_data[group_id]['itemId'] = []
+                
+            group_data[group_id]['itemId'].append(data['itemId'])
+            doc_ref.set(group_data)
+            return "item added",200
+    except Exception as e:
+        return f"item add error : {e}",404
     
 @app.route("/groups",methods=["DELETE"])
 def delete_group():
@@ -75,7 +213,7 @@ def delete_group():
         group_ref.delete()
         return "deleted group succ",200
     else:
-        return "not found",404       
+        return "group not found",404       
 
 
 @app.route("/users")

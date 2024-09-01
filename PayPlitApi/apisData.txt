@@ -1,0 +1,11 @@
+{
+    "itemId" : "1",
+    "itemName" : "item1",
+    "itemGroupId":"3",
+    "itemDateUpdate": "01-09-2024",
+    "itemTimeUpdate": "17:10",
+    "itemTotalAmount": "100",
+    "itemPayer" : ["1"],
+    "itemSpliter" : ["1","2","3","4"],
+    "ItemSpliterValue" : ["25","25","25","25"]
+}
