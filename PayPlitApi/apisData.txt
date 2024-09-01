@@ -7,5 +7,5 @@
     "itemTotalAmount": "100",
     "itemPayer" : ["1"],
     "itemSpliter" : ["1","2","3","4"],
-    "ItemSpliterValue" : ["25","25","25","25"]
+    "itemSpliterValue" : ["25","25","25","25"]
 }

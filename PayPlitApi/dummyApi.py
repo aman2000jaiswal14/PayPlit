@@ -32,7 +32,7 @@ items =>
         :memberId: String
     itemSpliter : List<String>
         :memberId : String
-    ItemSpliterValue : List<String>
+    itemSpliterValue : List<String>
         :itemValue: String
 }
 
@@ -57,7 +57,7 @@ def get_items():
                          'itemTotalAmount' : item_info['itemTotalAmount'],
                          'itemPayer' : item_info['itemPayer'],
                          'itemSpliter': item_info['itemSpliter'],
-                         'ItemSpliterValue' : item_info['ItemSpliterValue'],
+                         'itemSpliterValue' : item_info['itemSpliterValue'],
                          'itemGroupId' : item_info['itemGroupId']}
             items.append(item_dict)
     return jsonify(items),200
@@ -73,7 +73,7 @@ def create_item():
        'itemTotalAmount' in item_dict and
        'itemPayer' in item_dict and
        'itemSpliter' in item_dict and
-       'ItemSpliterValue' in item_dict and
+       'itemSpliterValue' in item_dict and
        'itemGroupId' in item_dict):
         new_doc_ref = doc_ref.push()
         data["itemId"] = new_doc_ref.key
@@ -105,10 +105,10 @@ def update_item():
                 item_data[itemId]['itemPayer'] = data["itemPayer"]
             if("itemTotalAmount" in data):
                 item_data[itemId]['itemTotalAmount'] = data["itemTotalAmount"]
-            if("itemSpliter" in data and "itemSpliter" in data and "ItemSpliterValue" in data ):
+            if("itemSpliter" in data and "itemSpliter" in data and "itemSpliterValue" in data ):
                 item_data[itemId]['itemSpliter'] = data["itemSpliter"]
                 item_data[itemId]['itemSpliter'] = data["itemSpliter"]
-                item_data[itemId]['ItemSpliterValue'] = data["ItemSpliterValue"]
+                item_data[itemId]['itemSpliterValue'] = data["itemSpliterValue"]
                 
             doc_ref.set(item_data)
             return "item updated",200
