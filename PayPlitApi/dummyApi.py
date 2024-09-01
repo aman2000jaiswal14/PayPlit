@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 import os
 
 config_path = os.path.join(os.path.dirname(__file__), 'config')
-cred = credentials.Certificate(os.path.join(config_path, 'firebase.json'))
+cred = credentials.Certificate(os.path.join(config_path, 'C:\\Users\\aman2\\Desktop\\F\\git_test\\config\\firebase.json'))
 firebase_admin.initialize_app(cred,{"databaseURL": "https://kotlinfirebase-95de4-default-rtdb.firebaseio.com/"})
 
 app = Flask(__name__)
@@ -14,10 +14,16 @@ groups =>
 {
     groupId : String
     groupName : String
-    groupMembers : List<String>
+    groupMembers : List<String> 
+        :memberId : String
 }
 
 '''
+
+
+@app.route("/",methods=["GET"])
+def get_group1():
+    return "api running ok ",200
 
 @app.route("/groups",methods=["GET"])
 def get_groups():
@@ -46,6 +52,19 @@ def create_group():
     data["groupId"] = new_doc_ref.key
     new_doc_ref.set(data)
     return "group created",201
+
+@app.route("/groups/<group_id>",methods = ["PUT"])
+def add_member_to_group(group_id):
+    data = request.get_json()
+    doc_ref = db.reference("groups")
+    group_data = doc_ref.get()
+    try:
+        if(group_id in group_data):
+            group_data[group_id]['groupMembers'].append(data['memberId'])
+            doc_ref.set(group_data)
+            return "Member added",200
+    except Exception as e:
+        return f"Memeber add error : {e}",404
     
 @app.route("/groups",methods=["DELETE"])
 def delete_group():
@@ -112,4 +131,4 @@ def delete_user():
     
 if __name__ == "__main__":
     print(__name__)
-    app.run(debug=True,port=7000)
+    app.run("192.168.29.141",debug=True,port=7000)

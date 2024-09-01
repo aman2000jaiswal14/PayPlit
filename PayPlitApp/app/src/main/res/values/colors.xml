@@ -7,5 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="blueshade">#3e64ed</color>
+    <color name="groupcontainer">#e0ba99</color>
     <color name="logo_background">#1f1f1f</color>
 </resources>
