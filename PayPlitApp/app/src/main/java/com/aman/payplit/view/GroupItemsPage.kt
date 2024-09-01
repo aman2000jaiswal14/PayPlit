@@ -75,7 +75,7 @@ fun GroupItemsPage(navController: NavController){
                         items(groupItems.value) { item ->
                             Card(
                                 onClick = {
-//                                    navController.navigate("GroupItemsPage")
+                                    navController.navigate("ItemDetailPage")
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()

@@ -87,7 +87,7 @@ def get_item_by_id(item_id):
     try:
         return jsonify(db.reference(f"items").get()[item_id]),200
     except Exception as e:
-        return f"Group Error : {e}",404
+        return f"Item Error : {e}",404
 
 @app.route("/items/update-item",methods = ["PUT"])
 def update_item():
@@ -158,6 +158,13 @@ def get_groups():
 def get_group(group_id):
     try:
         return jsonify(db.reference(f"groups").get()[group_id]),200
+    except Exception as e:
+        return f"Group Error : {e}",404
+    
+@app.route("/groups/members/<group_id>",methods=["GET","POST"])
+def get_group_members(group_id):
+    try:
+        return jsonify(db.reference(f"groups").get()[group_id]['groupMembers']),200
     except Exception as e:
         return f"Group Error : {e}",404
 
