@@ -42,6 +42,9 @@ fun PayPlitNavigation(){
         composable(route = "ItemDetailPage"){
             ItemDetailPage(navController)
         }
+        composable(route = "AddGroupPage"){
+            AddGroupPage(navController)
+        }
     }
 
 }
