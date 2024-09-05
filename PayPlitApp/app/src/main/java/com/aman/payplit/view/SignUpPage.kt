@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,14 +44,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.globalPP.AppGlobalObj.auth
+import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
+import com.aman.payplit.model.UserInfo
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpPage(navController: NavController){
-
-
-
     val userName = remember {
         mutableStateOf("")
     }
@@ -66,10 +67,20 @@ fun SignUpPage(navController: NavController){
     val passwordVisible = remember {
         mutableStateOf(false)
     }
+
+    val createUserStatus = remember {
+        mutableStateOf("SomeThing wrong")
+    }
+
+    val createUserFlag = remember {
+        mutableStateOf(false)
+    }
+
     val (isEmailError, setIsEmailError) = remember { mutableStateOf(false) }
     val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}$")
     val isDarkTheme = isSystemInDarkTheme()
     val myContext = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -171,18 +182,49 @@ fun SignUpPage(navController: NavController){
                 Button(
 
                     onClick = {
-//                        referencedb.child("checkerName").setValue("aman")
-                            auth.createUserWithEmailAndPassword("check1@gmail.com","check123").addOnCompleteListener {
-                                task ->
+                        if (userName.value.isNotEmpty() && userEmail.isNotEmpty() && userPhoneNo.value.isNotEmpty() && password.value.isNotEmpty()) {
+                            auth.createUserWithEmailAndPassword(userEmail,password.value).addOnCompleteListener {
+                                    task ->
                                 if(task.isSuccessful)
                                 {
-                                    Toast.makeText(myContext,"account created",Toast.LENGTH_LONG).show()
+                                    val uid = task.result?.user?.uid
+                                    scope.launch {
+                                        val responseBody = userApiObj.createUser(UserInfo(uid.toString(),userName.value,userPhoneNo.value,userEmail,
+                                            emptyList()))
+                                        if(responseBody.isSuccessful)
+                                        {
+                                            createUserStatus.value = responseBody.body()?.string()?:"No response"
+                                            Toast.makeText(myContext,"account status : ${createUserStatus.value}",Toast.LENGTH_LONG).show()
+                                            navController.popBackStack()
+
+                                        }
+                                        else{
+                                            createUserStatus.value = "Error : ${responseBody.message()}"
+                                            Toast.makeText(myContext,"account status : ${createUserStatus.value}",Toast.LENGTH_LONG).show()
+
+                                        }
+
+                                    }
+
                                 }
                                 else{
-
-                                    Toast.makeText(myContext,"account not created",Toast.LENGTH_LONG).show()
+                                    Toast.makeText(myContext,"account not created : ${task.exception?.message.toString()}",Toast.LENGTH_LONG).show()
                                 }
+                            }.addOnFailureListener {
+                                exception ->
+                                Toast.makeText(myContext,"account not created : ${exception.message}",Toast.LENGTH_LONG).show()
+
                             }
+
+                        }
+                        else{
+                            Toast.makeText(myContext,"Enter All Fields",Toast.LENGTH_SHORT).show()
+                        }
+
+
+
+
+
                     },
 
                     modifier =
