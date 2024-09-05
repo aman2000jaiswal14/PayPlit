@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
-import com.aman.payplit.globalPP.AppGlobalObj.auth
 import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
 import com.aman.payplit.model.UserInfo
 import kotlinx.coroutines.launch
@@ -52,6 +51,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpPage(navController: NavController) {
+// ...
+// Initialize Firebase Auth
     val userName = remember {
         mutableStateOf("")
     }
@@ -79,6 +80,7 @@ fun SignUpPage(navController: NavController) {
     val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}$")
     val isDarkTheme = isSystemInDarkTheme()
     val scope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -192,51 +194,16 @@ fun SignUpPage(navController: NavController) {
                 Spacer(modifier = Modifier.height(50.dp))
                 Button(
                     onClick = {
+
+
                         if (userName.value.isNotEmpty() && userEmail.isNotEmpty() && userPhoneNo.value.isNotEmpty() && password.value.isNotEmpty()) {
-                            auth.signInWithEmailAndPassword(userEmail, password.value)
-                                .addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        val user = task.result?.user
-                                        val uid = user?.uid.toString()
-                                        val userInfo = UserInfo(
-                                            uid, userName.value, userPhoneNo.value, userEmail,
-                                            listOf(uid)
-                                        )
-                                        scope.launch {
-                                            try {
 
-                                                val responseBody = userApiObj.createUser(userInfo)
-                                                if(responseBody.isSuccessful)
-                                                {
-                                                    createUserFlag.value = true
-                                                    createUserStatus.value = responseBody.body()?.string()?:"No response"
 
-                                                }
-                                                else{
-                                                    createUserStatus.value = "Error : ${responseBody.message()}"
 
-                                                }
-
-                                            } catch (e: Exception) {
-                                                createUserStatus.value = "HttpException: ${e.message}"
-                                            }
-                                        }
-                                        if(!createUserFlag.value){
-//                                            auth.deleteUser()
-                                        }
-                                    }
-                                    else
-                                    {
-                                        createUserStatus.value = "Error : ${task.exception?.toString()}"
-
-                                    }
-
-                                }
-                            Toast.makeText(myContext,createUserStatus.value,Toast.LENGTH_LONG).show()
-
+                        } else {
+                            Toast.makeText(myContext,"Enter All Fields",Toast.LENGTH_SHORT).show()
+                            // Show a message indicating all fields need to be filled
                         }
-
-
                     },
                     modifier =
                     Modifier
