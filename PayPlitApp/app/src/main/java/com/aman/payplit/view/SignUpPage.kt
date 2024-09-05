@@ -1,5 +1,6 @@
 package com.aman.payplit.view
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -40,11 +42,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
+import com.aman.payplit.globalPP.AppGlobalObj.auth
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpPage(navController: NavController){
+
+
+
     val userName = remember {
         mutableStateOf("")
     }
@@ -63,7 +69,7 @@ fun SignUpPage(navController: NavController){
     val (isEmailError, setIsEmailError) = remember { mutableStateOf(false) }
     val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}$")
     val isDarkTheme = isSystemInDarkTheme()
-
+    val myContext = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -164,7 +170,20 @@ fun SignUpPage(navController: NavController){
                 Spacer(modifier = Modifier.height(50.dp))
                 Button(
 
-                    onClick = {},
+                    onClick = {
+//                        referencedb.child("checkerName").setValue("aman")
+                            auth.createUserWithEmailAndPassword("check1@gmail.com","check123").addOnCompleteListener {
+                                task ->
+                                if(task.isSuccessful)
+                                {
+                                    Toast.makeText(myContext,"account created",Toast.LENGTH_LONG).show()
+                                }
+                                else{
+
+                                    Toast.makeText(myContext,"account not created",Toast.LENGTH_LONG).show()
+                                }
+                            }
+                    },
 
                     modifier =
                         Modifier.wrapContentWidth()
