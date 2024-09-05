@@ -131,6 +131,7 @@ fun AddGroupPage(navController: NavController) {
                                     ))
                                     if(responseBody.isSuccessful)
                                     {
+
                                         createStatus.value = responseBody.body()?.string()?:"No response"
                                     }
                                     else{
