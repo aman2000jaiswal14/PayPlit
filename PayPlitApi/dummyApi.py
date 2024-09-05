@@ -36,16 +36,6 @@ items =>
         :itemValue: String
 }
 
-Users =>
-{
-    userId : String
-    Name : String
-    Mobile No : String
-    Email : String
-    groupIds : List<String>
-        :groupId : String
-}
-
 '''
 
 
@@ -232,16 +222,7 @@ def delete_group():
     else:
         return "group not found",404       
 
-'''
-    userId : String
-    name : String
-    mobileNo : String
-    email : String
-    groupIds : List<String>
-        :groupId : String
-'''
 
-        
 @app.route("/users")
 def get_users():
     ref = db.reference("users")
@@ -249,15 +230,9 @@ def get_users():
     users = []
     if(users_data != None):
         for user_id, user_info in users_data.items():
-            groups = []
-            if('groupIds' in user_info):
-                groups = user_info['groupIds']
-            
-            users.append({'userId': user_id, 'name': user_info["name"],'mobileNo': user_info["mobileNo"],'email': user_info["email"],
-                          'groupIds':groups})
-        return jsonify(users),200
-    else:
-        return jsonify(users),200
+            users.append({'user_id': user_id, 'user_name': user_info["user_name"],'user_email': user_info["user_email"]})
+
+    return jsonify(users)
     
     
 @app.route("/users/<user_id>",methods=["GET","POST"])
@@ -275,20 +250,29 @@ def get_user(user_id):
 def create_user():
     data = request.get_json()
     doc_ref =  db.reference('users')
-    new_doc_ref = doc_ref.child(data['userId'])
+    new_doc_ref = doc_ref.push()
+    data["user_id"] = new_doc_ref.key
     new_doc_ref.set(data)
     return "user created",201
 
 @app.route("/users",methods=["DELETE"])
 def delete_user():
     data = request.get_json()
-    user_id = data['userId']
+    user_id = data['user_id']
     user_ref = db.reference(f'users/{user_id}')
     if(user_ref.get() is not None):
         user_ref.delete()
         return "deleted succ",200
     else:
         return "not found",404
+    try:
+        if(user_ref.get() is not None):
+            user_ref.delete()
+        return "deleted succ",200
+    except Exception as e:
+                
+        print(f"the erorr is {e}")
+        return f"the erorr is {e}",404
     
 if __name__ == "__main__":
     print(__name__)
