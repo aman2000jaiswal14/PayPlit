@@ -39,34 +39,31 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
-import com.aman.payplit.api.UserGroupsApi
+import com.aman.payplit.globalPP.AppGlobalObj.auth
+import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
+import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
 import com.aman.payplit.model.UserGroups
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupPage(navController: NavController) {
-    val baseUrlUserGroups = "http://192.168.29.141:7000"
-    val retrofitUserGroup = Retrofit.Builder().baseUrl(baseUrlUserGroups)
-        .addConverterFactory(GsonConverterFactory.create()).build()
-
-    val userGroupApi = retrofitUserGroup.create(UserGroupsApi::class.java)
-
     val groups = remember {
         mutableStateOf(emptyList<UserGroups>())
     }
     val myContext = LocalContext.current
 
-
     LaunchedEffect(key1 = Unit) {
         try {
-
-            val fetchedGroups = userGroupApi.getAllGroups()
-            groups.value = fetchedGroups
+            val groupIds : List<String> = userApiObj.getGroupsByUserId(auth.currentUser?.uid.toString())
+            groups.value = emptyList()
+            for(groupId in groupIds)
+            {
+                val groupData : UserGroups = groupApiObj.getGroupDataByGroupId(groupId)
+                groups.value = groups.value + groupData
+            }
         } catch (e: Exception) {
-
             println("GroupPage Error fetching groups: ${e.message}")
         }
 

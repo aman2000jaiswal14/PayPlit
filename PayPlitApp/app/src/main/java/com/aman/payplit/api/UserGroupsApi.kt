@@ -13,6 +13,9 @@ interface UserGroupsApi {
     @GET("/groups")
     suspend fun getAllGroups() : List<UserGroups>
 
+    @POST("/groups/getGroup")
+    suspend fun getGroupDataByGroupId(@Body groupId : String) : UserGroups
+
     @GET("/groups/members/{groupId}")
     suspend fun getAllMembersByGroupId(@Query("groupId") groupId:String) : List<String>
 

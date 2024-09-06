@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.api.UserGroupsApi
+import com.aman.payplit.globalPP.AppGlobalObj.auth
 import com.aman.payplit.model.UserGroups
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
@@ -127,7 +128,7 @@ fun AddGroupPage(navController: NavController) {
                             scope.launch {
                                 try {
                                     val responseBody = userGroupApi.createGroup(UserGroups("1",groupName.value,
-                                        listOf("1"), emptyList()
+                                        listOf(auth.currentUser?.uid.toString()), emptyList()
                                     ))
                                     if(responseBody.isSuccessful)
                                     {

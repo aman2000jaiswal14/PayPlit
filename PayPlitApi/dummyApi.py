@@ -164,8 +164,9 @@ def get_groups():
     return jsonify(groups),200
 
 
-@app.route("/groups/<group_id>",methods=["GET","POST"])
-def get_group(group_id):
+@app.route("/groups/getGroup",methods=["POST"])
+def get_group():
+    group_id = request.get_json() 
     try:
         return jsonify(db.reference(f"groups").get()[group_id]),200
     except Exception as e:
@@ -185,7 +186,20 @@ def create_group():
     new_doc_ref = doc_ref.push()
     data["groupId"] = new_doc_ref.key
     new_doc_ref.set(data)
-    return "group created",201
+    
+    user_id = data["groupMembers"][0]
+    user_ref = db.reference("users").child(user_id)
+    user_data = user_ref.get()
+    if(user_data is not None):    
+        if('groupIds' not in user_data):
+            user_data['groupIds'] = []
+        user_data["groupIds"].append(data["groupId"])
+        
+        user_ref.set(user_data)
+        user_data = user_ref.get()
+        return "group created",201
+    else:
+        return "No User data found",404
 
 @app.route("/groups/addMember/<group_id>",methods = ["PUT"])
 def add_member_to_group(group_id):
@@ -260,15 +274,25 @@ def get_users():
         return jsonify(users),200
     
     
-@app.route("/users/<user_id>",methods=["GET","POST"])
-def get_user(user_id):
+@app.route("/users/<userId>",methods=["GET","POST"])
+def get_user(userId):
     user_data = db.reference('users').get()
     try:
-        return jsonify(user_data[user_id]),200
+        return jsonify(user_data[userId]),200
     except Exception as e:
                 
         print(f"the erorr is {e}")
         return f"the erorr is {e}",404
+    
+@app.route("/users/groups",methods=["POST"])
+def get_groups_of_user():
+    data = request.get_json()
+    userId = data
+    user_data = db.reference('users').get()
+    try:
+        return jsonify(user_data[userId]['groupIds']),200
+    except Exception as e:
+        return f"Can Not access user group, the erorr is {e}",404
     
 
 @app.route("/users/create",methods=["POST"])
