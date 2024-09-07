@@ -40,6 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.api.GroupItemApi
+import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedGroup
+import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedItem
+import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
 import com.aman.payplit.model.GroupItem
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -57,7 +60,7 @@ fun GroupItemsPage(navController: NavController){
     
     LaunchedEffect(key1 = Unit) {
         try {
-            val fetchedItems = groupItemApi.getAllItems()
+            val fetchedItems = groupApiObj.getAllItemsOfGroups(currentSelectedGroup.groupId)
             groupItems.value = fetchedItems
 
         }catch (e : Exception)
@@ -74,6 +77,15 @@ fun GroupItemsPage(navController: NavController){
                     containerColor = colorResource(id = R.color.purple_500)
                 ))
         },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { Text(text = "Add Expense") },
+                icon = { Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Expense") },
+                onClick = {
+                    navController.navigate("AddItemPage")
+                })
+        },
+        floatingActionButtonPosition = FabPosition.End,
         content = {
             Column(modifier = Modifier.padding(it)) {
                 if (groupItems.value.isNotEmpty()) {
@@ -81,6 +93,7 @@ fun GroupItemsPage(navController: NavController){
                         items(groupItems.value) { item ->
                             Card(
                                 onClick = {
+                                    currentSelectedItem = item
                                     navController.navigate("ItemDetailPage")
                                 },
                                 modifier = Modifier

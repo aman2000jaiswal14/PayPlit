@@ -7,3 +7,9 @@ data class UserInfo(
     val email : String,
     val groupIds : List<String>
 )
+
+data class UserIdNameVal(
+    val userId: String,
+    val name : String,
+    var money : String
+)

@@ -6,3 +6,7 @@ data class UserGroups(
     val groupMembers : List<String>,
     val groupItems : List<String>
 )
+
+data class GroupMemberDetail(
+    val groupMembers : List<UserInfo>
+)

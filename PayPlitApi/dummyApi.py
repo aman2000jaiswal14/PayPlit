@@ -87,6 +87,19 @@ def create_item():
        'itemGroupId' in item_dict):
         new_doc_ref = doc_ref.push()
         data["itemId"] = new_doc_ref.key
+        
+        
+        
+        group_id = data["itemGroupId"]
+        group_ref = db.reference("groups").child(group_id)
+        group_data = group_ref.get()
+        if(group_data is not None):    
+            if('groupItems' not in group_data):
+                group_data['groupItems'] = []
+            group_data["groupItems"].append(data["itemId"])
+        
+        group_ref.set(group_data)
+        
         new_doc_ref.set(data)
         return "item created",201
     else:
@@ -178,6 +191,39 @@ def get_group_members(group_id):
         return jsonify(db.reference(f"groups").get()[group_id]['groupMembers']),200
     except Exception as e:
         return f"Group Error : {e}",404
+
+@app.route("/groups/items",methods=["POST"])
+def get_group_items():
+    try:
+        data = request.get_json()
+        group_id = request.get_json()
+        group_data = db.reference(f"groups").get()[group_id]
+        if('groupItems' not in group_data):
+            return jsonify([]),200
+        else:
+            items = []
+            for item_id in group_data['groupItems']:
+                items.append(db.reference("items").get()[item_id])
+            return jsonify(items),200
+        
+    except Exception as e:
+        return f"Group Item List Error : {e}",404
+        
+
+
+@app.route("/groups/membersDetail",methods=["POST"])
+def get_group_members_detail():
+    try:
+        group_id = request.get_json()
+        users = []
+        users_data = db.reference('users').get()
+        for user_id in db.reference(f"groups").get()[group_id]['groupMembers']:
+            users.append(users_data[user_id])
+        return jsonify(users),200
+    except Exception as e:
+        return f"Group member detail Error : {e}",404
+
+
 
 @app.route("/groups/create",methods = ["POST"])
 def create_group():

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.globalPP.AppGlobalObj.auth
+import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedGroup
 import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
 import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
 import com.aman.payplit.model.UserGroups
@@ -94,6 +95,7 @@ fun GroupPage(navController: NavController) {
                         items(groups.value) { group ->
                             Card(
                                 onClick = {
+                                    currentSelectedGroup = group
                                     navController.navigate("GroupItemsPage")
                                 },
                                 modifier = Modifier

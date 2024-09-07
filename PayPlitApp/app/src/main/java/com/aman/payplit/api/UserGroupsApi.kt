@@ -1,6 +1,8 @@
 package com.aman.payplit.api
 
+import com.aman.payplit.model.GroupItem
 import com.aman.payplit.model.UserGroups
+import com.aman.payplit.model.UserInfo
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -18,6 +20,12 @@ interface UserGroupsApi {
 
     @GET("/groups/members/{groupId}")
     suspend fun getAllMembersByGroupId(@Query("groupId") groupId:String) : List<String>
+
+    @POST("/groups/membersDetail")
+    suspend fun getAllGroupMembersDetail(@Body groupId : String) : List<UserInfo>
+
+    @POST("/groups/items")
+    suspend fun getAllItemsOfGroups(@Body groupId: String) : List<GroupItem>
 
     @GET("/")
     suspend fun checkConnectivity(): String

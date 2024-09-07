@@ -38,6 +38,7 @@ import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.api.GroupItemApi
 import com.aman.payplit.api.UserGroupsApi
+import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedItem
 import com.aman.payplit.model.GroupItem
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -45,57 +46,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemDetailPage(navController: NavController) {
-    val itemInfo = remember {
-        mutableStateOf(
-            GroupItem(
-                itemId = "",
-                itemName = "",
-                itemGroupId = "",
-                itemDateUpdate = "",
-                itemTimeUpdate = "",
-                itemTotalAmount = "",
-                itemPayer = emptyList(),
-                itemSpliter = emptyList(),
-                itemSpliterValue = emptyList()
-            )
-        )
-    }
-
-    val allGroupMembers = remember {
-        mutableStateOf(emptyList<String>())
-    }
-    val itemPrice = remember {
-        mutableStateOf("")
-    }
-    val itemId = "-O5ihfceUP03VSytLv6g"
-    val baseUrlItem = "http://192.168.29.141:7000"
-    val retrofitGroupItem = Retrofit.Builder().baseUrl(baseUrlItem).addConverterFactory(
-        GsonConverterFactory.create()
-    ).build()
-    val groupItemApi = retrofitGroupItem.create(GroupItemApi::class.java)
-    val userGroupApi = retrofitGroupItem.create(UserGroupsApi::class.java)
     val myContext = LocalContext.current
     val flagLoaded = remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
-    LaunchedEffect(key1 = Unit) {
-        try {
-            val fetchedItem = groupItemApi.getItemById(itemId)
-            itemInfo.value = fetchedItem
-            itemPrice.value = itemInfo.value.itemTotalAmount
-//            val fetchedMembers = userGroupApi.getAllMembersByGroupId("-O5hFiaT4XQ1rQwwLRHz")
-//            allGroupMembers.value = fetchedMembers
-//            if(itemInfo.value.itemId != "" && allGroupMembers.value.size>0) {
-                flagLoaded.value = true
-//            }
-
-        } catch (e: Exception) {
-            println("ItemPage Error fetching groups: ${e.message}")
-        }
-    }
-
-
-
+    val myItem = currentSelectedItem
     Scaffold(
         topBar = {
             TopAppBar(
@@ -109,7 +64,7 @@ fun ItemDetailPage(navController: NavController) {
             Column(modifier = Modifier.padding(it)) {
                 if (flagLoaded.value) {
                     Column(modifier = Modifier.padding(9.dp)) {
-                        Text(text = itemInfo.value.itemName, color = Color.White, fontSize = 30.sp)
+                        Text(text = currentSelectedItem.itemName, color = Color.White, fontSize = 30.sp)
                         Row(
                             modifier = Modifier
                                 .padding(7.dp),
@@ -117,18 +72,8 @@ fun ItemDetailPage(navController: NavController) {
                             horizontalArrangement = Arrangement.Start
                         ) {
                             Text(text = "Price : ", color = Color.White, fontSize = 25.sp)
-                            TextField(
-                                value = itemPrice.value,
-                                onValueChange = { totalPrice ->
-                                    itemPrice.value = totalPrice },
-                                colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = Color.LightGray,
-                                    focusedTextColor = Color.Blue,
-                                    focusedIndicatorColor = Color.Blue,
-                                    unfocusedIndicatorColor = Color.Gray
-                                ),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                            )
+                            Text(text = currentSelectedItem.itemTotalAmount, color = Color.White, fontSize = 25.sp)
+
                         }
 
                         Row(
@@ -138,10 +83,10 @@ fun ItemDetailPage(navController: NavController) {
                             horizontalArrangement = Arrangement.Start
                         ) {
                             Text(text = "Paid By : ", color = Color.White, fontSize = 25.sp)
-                            Text(text = itemInfo.value.itemPayer[0], color = Color.White, fontSize = 25.sp)
+                            Text(text = currentSelectedItem.itemPayer[0], color = Color.White, fontSize = 25.sp)
                         }
 
-                        Text(text = "Date : ${itemInfo.value.itemDateUpdate} Time : ${itemInfo.value.itemTimeUpdate}}", color = Color.White, fontSize = 20.sp)
+                        Text(text = "Date : ${currentSelectedItem.itemDateUpdate} Time : ${currentSelectedItem.itemTimeUpdate}}", color = Color.White, fontSize = 20.sp)
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -165,7 +110,7 @@ fun ItemDetailPage(navController: NavController) {
                                     contentDescription = ""
                                 )
                                 LazyColumn() {
-                                    items(count = itemInfo.value.itemSpliter.size,
+                                    items(count = currentSelectedItem.itemSpliter.size,
                                         itemContent = { index ->
                                             Row(
                                                 modifier = Modifier
@@ -174,8 +119,8 @@ fun ItemDetailPage(navController: NavController) {
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
-                                                Text(text = itemInfo.value.itemSpliter[index], color = Color.White, fontSize = 20.sp)
-                                                Text(text = itemInfo.value.itemSpliterValue[index], color = Color.White, fontSize = 20.sp)
+                                                Text(text = currentSelectedItem.itemSpliter[index], color = Color.White, fontSize = 20.sp)
+                                                Text(text = currentSelectedItem.itemSpliterValue[index], color = Color.White, fontSize = 20.sp)
 
                                             }
 

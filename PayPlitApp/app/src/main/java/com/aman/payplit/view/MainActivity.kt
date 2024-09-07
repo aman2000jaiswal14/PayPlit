@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.aman.payplit.ui.theme.PayPlitTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,6 +45,12 @@ fun PayPlitNavigation(){
         }
         composable(route = "AddGroupPage"){
             AddGroupPage(navController)
+        }
+        composable(route = "AddItemPage"){
+            AddItemPage(navController)
+        }
+        composable(route = "AddItemDetailPage"){
+            AddItemDetailPage(navController)
         }
     }
 

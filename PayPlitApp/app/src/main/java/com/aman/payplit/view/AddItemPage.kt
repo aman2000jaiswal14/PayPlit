@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
@@ -32,33 +33,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
-import com.aman.payplit.globalPP.AppGlobalObj.auth
-import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
-import com.aman.payplit.model.UserGroups
-import kotlinx.coroutines.launch
-
-
+import com.aman.payplit.globalPP.AppGlobalObj.addExpenseName
+import com.aman.payplit.globalPP.AppGlobalObj.addExpensePrice
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddGroupPage(navController: NavController) {
-    val createStatus  =  remember {
+fun AddItemPage(navController: NavController){
+    val itemName = remember {
         mutableStateOf("")
     }
-    val groupName = remember {
+    val itemPrice = remember {
         mutableStateOf("")
     }
+
     val scope = rememberCoroutineScope()
     val myContext = LocalContext.current
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Add Group", color = Color.White, fontSize = 20.sp) },
+                title = { Text(text = "Add Item", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(
                         id = R.color.purple_500
@@ -75,8 +74,7 @@ fun AddGroupPage(navController: NavController) {
             ) {
                 Card(
                     modifier = Modifier
-                        .width(300.dp)  // Adjust width as needed
-                        .height(250.dp)
+                        .fillMaxSize()
                         .padding(16.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
@@ -92,13 +90,14 @@ fun AddGroupPage(navController: NavController) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Text(text = "Group Name", color = Color.White, fontSize = 20.sp)
+                        Text(text = "Expense Detail", color = Color.White, fontSize = 20.sp)
                         Spacer(modifier = Modifier.height(16.dp))
 
                         TextField(
-                            value = groupName.value, onValueChange = { it ->
-                                groupName.value = it
+                            value = itemName.value, onValueChange = { it ->
+                                itemName.value = it
                             },
+                            label = { Text(text = "Expanse Name")},
                             textStyle = TextStyle(
                                 textAlign = TextAlign.Center,
                                 fontSize = 20.sp
@@ -113,27 +112,37 @@ fun AddGroupPage(navController: NavController) {
                             singleLine = true,
                             shape = MaterialTheme.shapes.small
                         )
-
+                        Spacer(modifier = Modifier.height(16.dp))
+                        TextField(
+                            value = itemPrice.value, onValueChange = { it ->
+                                itemPrice.value = it
+                            },
+                            label = { Text(text = "Expense Price")},
+                            textStyle = TextStyle(
+                                textAlign = TextAlign.Center,
+                                fontSize = 20.sp
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.5f
+                                )
+                            ),
+                            singleLine = true,
+                            shape = MaterialTheme.shapes.small,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         ElevatedButton(onClick = {
-                            scope.launch {
-                                try {
-                                    val responseBody = groupApiObj.createGroup(UserGroups("1",groupName.value,
-                                        listOf(auth.currentUser?.uid.toString()), emptyList()
-                                    ))
-                                    if(responseBody.isSuccessful)
-                                    {
-                                        createStatus.value = responseBody.body()?.string()?:"No response"
-                                    }
-                                    else{
-                                        createStatus.value = "Error : ${responseBody.message()}"
-                                    }
-                                }
-                                catch (e : Exception){
-                                    createStatus.value = "HttpException: ${e.message}"
-                                }
-                                Toast.makeText(myContext,createStatus.value,Toast.LENGTH_LONG).show()
-                                navController.popBackStack()
+                            if(itemName.value.isNotEmpty() && itemPrice.value.isNotEmpty())
+                            {
+                                addExpenseName = itemName.value
+                                addExpensePrice = itemPrice.value
+                                navController.navigate("AddItemDetailPage")
+                            }
+                            else{
+                                Toast.makeText(myContext,"Enter Name or Price",Toast.LENGTH_SHORT).show()
                             }
                         }) {
                             Text(text = "Add", color = Color.White, fontSize = 20.sp)
