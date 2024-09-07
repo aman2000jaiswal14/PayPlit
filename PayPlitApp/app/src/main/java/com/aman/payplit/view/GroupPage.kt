@@ -15,12 +15,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,7 +49,7 @@ import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedGroup
 import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
 import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
 import com.aman.payplit.model.UserGroups
-
+import kotlin.math.exp
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +58,7 @@ fun GroupPage(navController: NavController) {
     val groups = remember {
         mutableStateOf(emptyList<UserGroups>())
     }
-    val myContext = LocalContext.current
+    val expanded = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
         try {
@@ -76,7 +81,26 @@ fun GroupPage(navController: NavController) {
                 title = { Text(text = "Groups", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(id = R.color.purple_500)
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { expanded.value = true }) {
+                        Icon(imageVector = Icons.Filled.Menu, contentDescription = "More Options")
+                    }
+                    DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
+                        DropdownMenuItem(
+                            text = { Text(text = "LogOut") },
+                            onClick = {
+                                expanded.value = false
+                                auth.signOut()
+                                navController.navigate("LoginPage"){
+                                    popUpTo("LoginPage"){inclusive = true}
+                                }
+
+                            },
+
+                            )
+                    }
+                }
             )
         },
         floatingActionButton = {

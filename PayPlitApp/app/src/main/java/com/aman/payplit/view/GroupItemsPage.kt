@@ -15,12 +15,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.api.GroupItemApi
+import com.aman.payplit.globalPP.AppGlobalObj.auth
 import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedGroup
 import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedItem
 import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
@@ -53,11 +58,9 @@ fun GroupItemsPage(navController: NavController){
     val groupItems = remember{
         mutableStateOf(emptyList<GroupItem>())
     }
-    val baseUrlItem = "http://192.168.29.141:7000"
-    val retrofitGroupItem = Retrofit.Builder().baseUrl(baseUrlItem).addConverterFactory(GsonConverterFactory.create()).build()
-    val groupItemApi = retrofitGroupItem.create(GroupItemApi::class.java)
     val myContext = LocalContext.current
-    
+    val expanded = remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = Unit) {
         try {
             val fetchedItems = groupApiObj.getAllItemsOfGroups(currentSelectedGroup.groupId)
@@ -75,7 +78,31 @@ fun GroupItemsPage(navController: NavController){
             TopAppBar(title = { Text(text = "Item Page", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(id = R.color.purple_500)
-                ))
+                ),
+                actions = {
+                    IconButton(onClick = { expanded.value = true }) {
+                        Icon(imageVector = Icons.Filled.Menu, contentDescription = "More Options")
+                    }
+                    DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
+                        DropdownMenuItem(
+                            text = { Text(text = "Add Member") },
+                            onClick = {
+                                navController.navigate("AddMemberInGroup")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(text = "LogOut") },
+                            onClick = {
+                                expanded.value = false
+                                auth.signOut()
+                                navController.navigate("LoginPage"){
+                                    popUpTo("LoginPage"){inclusive = true}
+                                }
+
+                            }
+                            )
+                    }
+                })
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(

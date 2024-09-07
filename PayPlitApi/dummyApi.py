@@ -2,6 +2,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore, db
 from flask import Flask, request, jsonify
 import os
+import time
+
+
 
 config_path = os.path.join(os.path.dirname(__file__), 'config')
 cred = credentials.Certificate(os.path.join(config_path, 'C:\\Users\\aman2\\Desktop\\F\\git_test\\config\\firebase.json'))
@@ -44,6 +47,12 @@ Users =>
     Email : String
     groupIds : List<String>
         :groupId : String
+}
+
+usersAsEmailKey=>
+{
+    email : String,
+    userId : String
 }
 
 '''
@@ -194,6 +203,7 @@ def get_group_members(group_id):
 
 @app.route("/groups/items",methods=["POST"])
 def get_group_items():
+    start_time = time.time()
     try:
         data = request.get_json()
         group_id = request.get_json()
@@ -204,6 +214,9 @@ def get_group_items():
             items = []
             for item_id in group_data['groupItems']:
                 items.append(db.reference("items").get()[item_id])
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print("Time taken:", elapsed_time, "seconds")
             return jsonify(items),200
         
     except Exception as e:
@@ -242,23 +255,43 @@ def create_group():
         user_data["groupIds"].append(data["groupId"])
         
         user_ref.set(user_data)
-        user_data = user_ref.get()
+        
         return "group created",201
     else:
         return "No User data found",404
 
-@app.route("/groups/addMember/<group_id>",methods = ["PUT"])
-def add_member_to_group(group_id):
-    data = request.get_json()
-    doc_ref = db.reference("groups")
-    group_data = doc_ref.get()
+@app.route("/groups/addMember",methods = ["PUT"])
+def add_member_to_group():
     try:
+        data = request.get_json()
+        group_id = data['groupId']
+        newEmail = data['memberEmail'].replace('.', '_dot_').replace('@', '_at_')
+        member_email = newEmail
+        data['memberId'] = db.reference('usersAsEmailKey').get()[member_email]['userId']
+        
+        doc_ref = db.reference("groups")
+        group_data = doc_ref.get()
+        
         if(group_id in group_data):
             if('groupMembers' not in group_data[group_id]):
                 group_data[group_id]['groupMembers'] = []
                 
             group_data[group_id]['groupMembers'].append(data['memberId'])
-            doc_ref.set(group_data)
+            
+            
+            # ADD Group To Member
+            user_id = data['memberId']
+            user_ref = db.reference("users").child(user_id)
+            user_data = user_ref.get()
+            if(user_data is not None):    
+                if('groupIds' not in user_data):
+                    user_data['groupIds'] = []
+                user_data["groupIds"].append(group_id)
+                
+                user_ref.set(user_data)
+            
+            # ---
+                doc_ref.set(group_data)
             return "Member added",200
         else:
             return "group not found",404
@@ -346,7 +379,16 @@ def create_user():
     data = request.get_json()
     doc_ref =  db.reference('users')
     new_doc_ref = doc_ref.child(data['userId'])
+    data['email'] = data['email'].replace('.', '_dot_').replace('@', '_at_')
+    email_key_user_dict = {'email':data['email']}
+    doc_ref_by_email = db.reference("usersAsEmailKey")
+    doc_ref_by_email = doc_ref_by_email.child(email_key_user_dict['email'])
+    email_key_user_dict['userId'] = data['userId']
+    
+    
+    doc_ref_by_email.set(email_key_user_dict)
     new_doc_ref.set(data)
+    
     return "user created",201
 
 @app.route("/users",methods=["DELETE"])

@@ -12,9 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -38,6 +44,7 @@ import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.api.GroupItemApi
 import com.aman.payplit.api.UserGroupsApi
+import com.aman.payplit.globalPP.AppGlobalObj.auth
 import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedItem
 import com.aman.payplit.model.GroupItem
 import retrofit2.Retrofit
@@ -47,17 +54,38 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Composable
 fun ItemDetailPage(navController: NavController) {
     val myContext = LocalContext.current
+    val expanded = remember { mutableStateOf(false) }
+
     val flagLoaded = remember {
         mutableStateOf(true)
     }
-    val myItem = currentSelectedItem
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "Item Info Page", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(id = R.color.purple_500)
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { expanded.value = true }) {
+                        Icon(imageVector = Icons.Filled.Menu, contentDescription = "More Options")
+                    }
+                    DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
+                        DropdownMenuItem(
+                            text = { Text(text = "LogOut") },
+                            onClick = {
+                                expanded.value = false
+                                auth.signOut()
+                                navController.navigate("LoginPage"){
+                                    popUpTo("LoginPage"){inclusive = true}
+                                }
+
+                            },
+
+                            )
+                    }
+                }
             )
         },
         content = {

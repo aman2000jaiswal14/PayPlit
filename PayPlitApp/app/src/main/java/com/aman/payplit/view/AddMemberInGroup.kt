@@ -44,19 +44,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
 import com.aman.payplit.globalPP.AppGlobalObj.auth
+import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedGroup
 import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
-import com.aman.payplit.model.UserGroups
+import com.aman.payplit.model.AddMemberInGroupRequest
 import kotlinx.coroutines.launch
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddGroupPage(navController: NavController) {
+fun AddMemberInGroup(navController: NavController){
     val createStatus  =  remember {
         mutableStateOf("")
     }
-    val groupName = remember {
+    val memberEmail = remember {
         mutableStateOf("")
     }
     val expanded = remember { mutableStateOf(false) }
@@ -66,7 +65,7 @@ fun AddGroupPage(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Add Group", color = Color.White, fontSize = 20.sp) },
+                title = { Text(text = "Add Member", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(
                         id = R.color.purple_500
@@ -120,12 +119,12 @@ fun AddGroupPage(navController: NavController) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Text(text = "Group Name", color = Color.White, fontSize = 20.sp)
+                        Text(text = "Member Email", color = Color.White, fontSize = 20.sp)
                         Spacer(modifier = Modifier.height(16.dp))
 
                         TextField(
-                            value = groupName.value, onValueChange = { it ->
-                                groupName.value = it
+                            value = memberEmail.value, onValueChange = { it ->
+                                memberEmail.value = it
                             },
                             textStyle = TextStyle(
                                 textAlign = TextAlign.Center,
@@ -146,9 +145,10 @@ fun AddGroupPage(navController: NavController) {
                         ElevatedButton(onClick = {
                             scope.launch {
                                 try {
-                                    val responseBody = groupApiObj.createGroup(UserGroups("1",groupName.value,
-                                        listOf(auth.currentUser?.uid.toString()), emptyList()
-                                    ))
+                                    val responseBody = groupApiObj.addMemberInGroup(
+                                        AddMemberInGroupRequest(currentSelectedGroup.groupId,memberEmail.value)
+                                    )
+
                                     if(responseBody.isSuccessful)
                                     {
                                         createStatus.value = responseBody.body()?.string()?:"No response"
@@ -160,7 +160,7 @@ fun AddGroupPage(navController: NavController) {
                                 catch (e : Exception){
                                     createStatus.value = "HttpException: ${e.message}"
                                 }
-                                Toast.makeText(myContext,createStatus.value,Toast.LENGTH_LONG).show()
+                                Toast.makeText(myContext,createStatus.value, Toast.LENGTH_LONG).show()
                                 navController.popBackStack()
                             }
                         }) {

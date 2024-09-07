@@ -1,5 +1,6 @@
 package com.aman.payplit.api
 
+import com.aman.payplit.model.AddMemberInGroupRequest
 import com.aman.payplit.model.GroupItem
 import com.aman.payplit.model.UserGroups
 import com.aman.payplit.model.UserInfo
@@ -8,6 +9,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Query
 
 interface UserGroupsApi {
@@ -32,4 +34,8 @@ interface UserGroupsApi {
 
     @POST("/groups/create")
     suspend fun createGroup(@Body request: UserGroups) : Response<ResponseBody>
+
+    @PUT("/groups/addMember")
+    suspend fun addMemberInGroup(@Body addMemberInGroupRequest : AddMemberInGroupRequest) : Response<ResponseBody>
+
 }

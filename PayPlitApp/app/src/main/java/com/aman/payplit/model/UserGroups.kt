@@ -10,3 +10,8 @@ data class UserGroups(
 data class GroupMemberDetail(
     val groupMembers : List<UserInfo>
 )
+
+data class AddMemberInGroupRequest(
+    val groupId : String,
+    val memberEmail : String
+)
