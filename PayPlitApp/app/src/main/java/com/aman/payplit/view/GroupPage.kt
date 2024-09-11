@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,30 +52,38 @@ import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedGroup
 import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
 import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
 import com.aman.payplit.model.UserGroups
+import kotlinx.coroutines.launch
 import kotlin.math.exp
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupPage(navController: NavController) {
+    val scope = rememberCoroutineScope()
     val groups = remember {
         mutableStateOf(emptyList<UserGroups>())
     }
     val expanded = remember { mutableStateOf(false) }
-
+    val isLoading = remember { mutableStateOf(true) }
+    val error = remember { mutableStateOf<String?>(null) }
     LaunchedEffect(key1 = Unit) {
-        try {
-            val groupIds : List<String> = userApiObj.getGroupsByUserId(auth.currentUser?.uid.toString())
-            groups.value = emptyList()
-            for(groupId in groupIds)
-            {
-                val groupData : UserGroups = groupApiObj.getGroupDataByGroupId(groupId)
-                groups.value = groups.value + groupData
+        scope.launch {
+            try {
+                val groupIds: List<String> =
+                    userApiObj.getGroupsByUserId(auth.currentUser?.uid.toString())
+                val fetchedGroups = mutableListOf<UserGroups>()
+                groupIds.forEach { groupId ->
+                    val groupData: UserGroups = groupApiObj.getGroupDataByGroupId(groupId)
+                    fetchedGroups.add(groupData)
+                }
+                groups.value = fetchedGroups
+                isLoading.value = false
+            } catch (e: Exception) {
+                println("GroupPage Error fetching groups: ${e.message}")
+                error.value = "Error fetching groups: ${e.message}"
+                isLoading.value = false
             }
-        } catch (e: Exception) {
-            println("GroupPage Error fetching groups: ${e.message}")
-        }
 
+        }
     }
 
     Scaffold(
@@ -112,9 +123,19 @@ fun GroupPage(navController: NavController) {
                 })
         },
         floatingActionButtonPosition = FabPosition.End,
-        content = {
-            Column(modifier = Modifier.padding(it)) {
-                if (groups.value.isNotEmpty()) {
+        content = {padding ->
+            Column(modifier = Modifier.padding(padding)) {
+                if (isLoading.value) {
+                    // Show loading indicator
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else if (error.value != null) {
+                    // Show error message
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = error.value ?: "Unknown error", color = Color.Red)
+                    }
+                } else if (groups.value.isNotEmpty()) {
                     LazyColumn {
                         items(groups.value) { group ->
                             Card(
@@ -131,23 +152,28 @@ fun GroupPage(navController: NavController) {
                                     containerColor = colorResource(id = R.color.groupcontainer)
                                 ),
                                 elevation = CardDefaults.cardElevation(7.dp),
-                                border = BorderStroke(2.dp,Color.Red)
+                                border = BorderStroke(2.dp, Color.Red)
                             ) {
-                                Row(modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(7.dp),
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(7.dp),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Image(painter = painterResource(id = R.drawable.ic_group), contentDescription ="")
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Image(painter = painterResource(id = R.drawable.ic_group), contentDescription = "")
                                     Text(text = group.groupName, color = Color.Blue, fontSize = 20.sp)
                                 }
-
                             }
                         }
+                    }
+                } else {
+                    // Show empty state
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = "No groups available")
                     }
                 }
             }
         }
-
     )
 }
