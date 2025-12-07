@@ -1,6 +1,8 @@
 package com.aman.payplit.view
 
 import android.widget.Toast
+import android.content.Context
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,8 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
-import com.aman.payplit.globalPP.AppGlobalObj.auth
 import com.aman.payplit.globalPP.AppGlobalObj.currentSelectedGroup
+import com.aman.payplit.globalPP.AppGlobalObj.currentUserId
 import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
 import com.aman.payplit.model.AddMemberInGroupRequest
 import kotlinx.coroutines.launch
@@ -80,7 +82,11 @@ fun AddMemberInGroup(navController: NavController){
                             text = { Text(text = "LogOut") },
                             onClick = {
                                 expanded.value = false
-                                auth.signOut()
+                                currentUserId = ""
+
+//                                val sharedPref = ctx.getSharedPreferences("PayplitPrefs", Context.MODE_PRIVATE)
+//                                val sharedPref = context.getSharedPreferences("PayplitPrefs", Context.MODE_PRIVATE)
+//                                sharedPref.edit().remove("currentUserId").apply()
                                 navController.navigate("LoginPage"){
                                     popUpTo("LoginPage"){inclusive = true}
                                 }

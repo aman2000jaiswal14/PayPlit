@@ -8,8 +8,9 @@ import time
 
 config_path = os.path.join(os.path.dirname(__file__), 'config')
 cred = credentials.Certificate(os.path.join(config_path, 'C:\\Users\\aman2\\Desktop\\F\\git_test\\config\\firebase.json'))
-firebase_admin.initialize_app(cred,{"databaseURL": "https://kotlinfirebase-95de4-default-rtdb.firebaseio.com/"})
-
+firebase_admin.initialize_app(cred,{"databaseURL": "https://myproject-b3962-default-rtdb.firebaseio.com/"})
+print("🔥 Firebase connected to:", firebase_admin.get_app().project_id)
+print("🔥 Database URL:", db.reference("/").path)
 app = Flask(__name__)
 
 '''

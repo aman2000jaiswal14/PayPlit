@@ -1,33 +1,12 @@
 package com.aman.payplit.view
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,34 +22,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
-import com.aman.payplit.globalPP.AppGlobalObj.auth
-import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
+import com.aman.payplit.globalPP.AppGlobalObj
 import com.aman.payplit.model.UserGroups
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
-
+import kotlinx.coroutines.withContext
+import com.aman.payplit.globalPP.AppGlobalObj.groupApiObj
+import com.aman.payplit.globalPP.AppGlobalObj.currentUserId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddGroupPage(navController: NavController) {
-    val createStatus  =  remember {
-        mutableStateOf("")
-    }
-    val groupName = remember {
-        mutableStateOf("")
-    }
+    val groupName = remember { mutableStateOf("") }
     val expanded = remember { mutableStateOf(false) }
-
     val scope = rememberCoroutineScope()
-    val myContext = LocalContext.current
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "Add Group", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorResource(
-                        id = R.color.purple_500
-                    )
+                    containerColor = colorResource(id = R.color.purple_500)
                 ),
                 actions = {
                     IconButton(onClick = { expanded.value = true }) {
@@ -81,96 +54,127 @@ fun AddGroupPage(navController: NavController) {
                             text = { Text(text = "LogOut") },
                             onClick = {
                                 expanded.value = false
-                                auth.signOut()
-                                navController.navigate("LoginPage"){
-                                    popUpTo("LoginPage"){inclusive = true}
+                                currentUserId = ""
+                                navController.navigate("LoginPage") {
+                                    popUpTo("LoginPage") { inclusive = true }
                                 }
-
-                            },
-
-                            )
+                            }
+                        )
                     }
                 }
-
             )
         },
-        content = {
+        content = { padding ->
             Box(
                 modifier = Modifier
-                    .padding(it)
+                    .padding(padding)
                     .fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Card(
                     modifier = Modifier
-                        .width(300.dp)  // Adjust width as needed
-                        .height(250.dp)
-                        .padding(16.dp),
-                    shape = RoundedCornerShape(10.dp),
+                        .width(320.dp)
+                        .height(280.dp)
+                        .border(
+                            width = 1.dp,
+                            color = Color.White.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(16.dp)
+                        ),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = Color.White.copy(alpha = 0.05f)
                     ),
-                    elevation = CardDefaults.cardElevation(7.dp),
-                    border = BorderStroke(2.dp, Color.White)
+                    elevation = CardDefaults.cardElevation(12.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(20.dp),
+                            .padding(24.dp),
                         verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Group Name", color = Color.White, fontSize = 20.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        TextField(
-                            value = groupName.value, onValueChange = { it ->
-                                groupName.value = it
-                            },
-                            textStyle = TextStyle(
-                                textAlign = TextAlign.Center,
-                                fontSize = 20.sp
-                            ),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.5f
-                                )
-                            ),
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.small
+                        Text(
+                            text = "Group Name",
+                            color = Color.White,
+                            fontSize = 22.sp
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
-                        ElevatedButton(onClick = {
-                            scope.launch {
-                                try {
-                                    val responseBody = groupApiObj.createGroup(UserGroups("1",groupName.value,
-                                        listOf(auth.currentUser?.uid.toString()), emptyList()
-                                    ))
-                                    if(responseBody.isSuccessful)
-                                    {
-                                        createStatus.value = responseBody.body()?.string()?:"No response"
-                                    }
-                                    else{
-                                        createStatus.value = "Error : ${responseBody.message()}"
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        TextField(
+                            value = groupName.value,
+                            onValueChange = { groupName.value = it },
+                            textStyle = TextStyle(
+                                textAlign = TextAlign.Center,
+                                fontSize = 20.sp,
+                                color = Color.White // Text color here
+                            ),
+                            placeholder = { Text(text = "Enter group name", color = Color.LightGray) },
+                            colors = TextFieldDefaults.textFieldColors(
+                                containerColor = Color.White.copy(alpha = 0.1f),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = Color.White
+                                // Do NOT use textColor here
+                            ),
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth(0.85f)
+                        )
+
+
+                        Spacer(modifier = Modifier.height(30.dp))
+
+                        ElevatedButton(
+                            onClick = {
+                                if (groupName.value.isBlank()) {
+                                    Toast.makeText(context, "Group name cannot be empty", Toast.LENGTH_SHORT).show()
+                                    return@ElevatedButton
+                                }
+
+                                scope.launch(Dispatchers.IO) {
+                                    try {
+                                        val currentUserId = AppGlobalObj.currentUserId
+                                        if (currentUserId.isEmpty()) {
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, "User not logged in!", Toast.LENGTH_LONG).show()
+                                            }
+                                            return@launch
+                                        }
+
+                                        val newGroup = UserGroups(
+                                            groupId = "",
+                                            groupName = groupName.value,
+                                            groupMembers = listOf(currentUserId),
+                                            groupItems = emptyList()
+                                        )
+
+                                        val response = groupApiObj.createGroup(newGroup)
+
+                                        withContext(Dispatchers.Main) {
+                                            if (response.isSuccessful) {
+                                                Toast.makeText(context, "Group created successfully!", Toast.LENGTH_LONG).show()
+                                                navController.popBackStack()
+                                            } else {
+                                                Toast.makeText(context, "Error: ${response.message()}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        withContext(Dispatchers.Main) {
+                                            Toast.makeText(context, "Exception: ${e.message}", Toast.LENGTH_LONG).show()
+                                        }
                                     }
                                 }
-                                catch (e : Exception){
-                                    createStatus.value = "HttpException: ${e.message}"
-                                }
-                                Toast.makeText(myContext,createStatus.value,Toast.LENGTH_LONG).show()
-                                navController.popBackStack()
-                            }
-                        }) {
-                            Text(text = "Add", color = Color.White, fontSize = 20.sp)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(0.7f)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(text = "Add", fontSize = 20.sp, color = Color.White)
                         }
                     }
-
                 }
-
-
             }
         }
     )

@@ -1,34 +1,13 @@
 package com.aman.payplit.view
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,207 +22,199 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
-import com.aman.payplit.globalPP.AppGlobalObj.auth
-import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
+import com.aman.payplit.globalPP.AppGlobalObj
 import com.aman.payplit.model.UserInfo
 import kotlinx.coroutines.launch
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpPage(navController: NavController){
-    val userName = remember {
-        mutableStateOf("")
-    }
-    val userPhoneNo = remember {
-        mutableStateOf("")
-    }
-    val (userEmail, setUserEmail) = remember {
-        mutableStateOf("")
-    }
-    val password = remember{
-        mutableStateOf("")
-    }
-    val passwordVisible = remember {
-        mutableStateOf(false)
-    }
+fun SignUpPage(navController: NavController) {
 
-    val createUserStatus = remember {
-        mutableStateOf("SomeThing wrong")
-    }
+    val userName = remember { mutableStateOf("") }
+    val userPhoneNo = remember { mutableStateOf("") }
+    val (userEmail, setUserEmail) = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+    val passwordVisible = remember { mutableStateOf(false) }
 
-    val createUserFlag = remember {
-        mutableStateOf(false)
-    }
-
-    val (isEmailError, setIsEmailError) = remember { mutableStateOf(false) }
     val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}$")
-    val isDarkTheme = isSystemInDarkTheme()
-    val myContext = LocalContext.current
+    val (isEmailError, setIsEmailError) = remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val isDarkTheme = isSystemInDarkTheme()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "SignUp", color = Color.White, fontSize = 20.sp) },
+            TopAppBar(
+                title = { Text("SignUp", color = Color.White, fontSize = 20.sp) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(id = R.color.purple_500)
                 )
             )
-        },
-        content = { paddingValue->
-            Column(modifier = Modifier
+        }
+    ) { paddingValue ->
+
+        Column(
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValue),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-                TextField(value = userName.value, onValueChange = {userName.value = it},
-                    label = { Text(text = "Enter Name")},
-                    modifier = Modifier.size(300.dp,60.dp),
-                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
-                    shape = RoundedCornerShape(5.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = colorResource(id = R.color.purple_500)
-                    ))
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                TextField(value = userPhoneNo.value, onValueChange = { newValue->
-                    val filteredValue = newValue.filter{ it.isDigit() }
-                    userPhoneNo.value = filteredValue},
-                    label = { Text(text = "Enter Phone No")},
-                    modifier = Modifier.size(300.dp,60.dp),
-                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
-                    shape = RoundedCornerShape(5.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = colorResource(id = R.color.purple_500)
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                TextField(value = userEmail, onValueChange = { emailValue ->
-                    setUserEmail(emailValue)
-                    setIsEmailError(!emailRegex.matches(emailValue))},
-                    label = { Text(text = "Enter Email")},
-                    modifier = Modifier.size(300.dp,60.dp),
-                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
-                    shape = RoundedCornerShape(5.dp),
-                    isError = isEmailError,
-                    colors = TextFieldDefaults.colors(
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = colorResource(id = R.color.purple_500),
-                        errorContainerColor = Color.Red
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    trailingIcon = {
-                        if(isEmailError){
-                            Icon(painter = painterResource(id = R.drawable.ic_error), contentDescription = "Error", tint = MaterialTheme.colorScheme.error)
-                        }
-                    }
+            // Name
+            TextField(
+                value = userName.value,
+                onValueChange = { userName.value = it },
+                label = { Text("Enter Name") },
+                modifier = Modifier.size(300.dp, 60.dp),
+                textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
+                shape = RoundedCornerShape(6.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = colorResource(id = R.color.purple_500),
+                    unfocusedContainerColor = colorResource(id = R.color.purple_500),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
                 )
-                Spacer(modifier = Modifier.height(20.dp))
-                TextField(value = password.value, onValueChange = {password.value = it},
-                    label = { Text(text = "Enter Password")},
-                    modifier = Modifier.size(300.dp,60.dp),
-                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
-                    shape = RoundedCornerShape(5.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = colorResource(id = R.color.purple_500)
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = if(passwordVisible.value) VisualTransformation.None
-                        else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
-                                    Image(painter = if(!passwordVisible.value) painterResource(id = R.drawable.ic_visibility)
-                                        else painterResource(id = R.drawable.ic_visibilityoff),
-                                        contentDescription ="Toggle password visibility" )
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Phone
+            TextField(
+                value = userPhoneNo.value,
+                onValueChange = { newValue ->
+                    userPhoneNo.value = newValue.filter { it.isDigit() }
+                },
+                label = { Text("Enter Phone No") },
+                modifier = Modifier.size(300.dp, 60.dp),
+                textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
+                shape = RoundedCornerShape(6.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = colorResource(id = R.color.purple_500),
+                    unfocusedContainerColor = colorResource(id = R.color.purple_500),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                )
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Email
+            TextField(
+                value = userEmail,
+                onValueChange = { email ->
+                    setUserEmail(email)
+                    setIsEmailError(!emailRegex.matches(email))
+                },
+                label = { Text("Enter Email") },
+                modifier = Modifier.size(300.dp, 60.dp),
+                isError = isEmailError,
+                textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
+                shape = RoundedCornerShape(6.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = if (isEmailError) Color.Red else colorResource(id = R.color.purple_500),
+                    unfocusedContainerColor = if (isEmailError) Color.Red else colorResource(id = R.color.purple_500),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                )
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Password
+            TextField(
+                value = password.value,
+                onValueChange = { password.value = it },
+                label = { Text("Enter Password") },
+                modifier = Modifier.size(300.dp, 60.dp),
+                textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
+                shape = RoundedCornerShape(6.dp),
+                visualTransformation = if (passwordVisible.value)
+                    VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = {
+                        passwordVisible.value = !passwordVisible.value
+                    }) {
+                        Icon(
+                            painter =
+                            if (!passwordVisible.value)
+                                painterResource(id = R.drawable.ic_visibility)
+                            else
+                                painterResource(id = R.drawable.ic_visibilityoff),
+                            contentDescription = "Toggle Password"
+                        )
+                    }
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = colorResource(id = R.color.purple_500),
+                    unfocusedContainerColor = colorResource(id = R.color.purple_500),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                )
+            )
+
+            Spacer(Modifier.height(50.dp))
+
+            // SIGN UP BUTTON
+            Button(
+                onClick = {
+                    if (userName.value.isNotEmpty() &&
+                        userPhoneNo.value.isNotEmpty() &&
+                        userEmail.isNotEmpty() &&
+                        password.value.isNotEmpty() &&
+                        !isEmailError
+                    ) {
+
+                        scope.launch {
+                            try {
+                                val response = AppGlobalObj.userApiObj.createUser(
+                                    UserInfo(
+                                        userId = "",
+                                        name = userName.value,
+                                        mobileNo = userPhoneNo.value,
+                                        email = userEmail,
+                                        password = password.value,
+                                        groupIds = emptyList()
+                                    )
+                                )
+
+                                if (response.isSuccessful) {
+                                    Toast.makeText(context, "User created successfully!", Toast.LENGTH_LONG).show()
+                                    navController.popBackStack()
+                                } else {
+                                    Toast.makeText(context, "Error: ${response.message()}", Toast.LENGTH_LONG).show()
                                 }
-                            })
 
-                Spacer(modifier = Modifier.height(50.dp))
-                Button(
-
-                    onClick = {
-                        if (userName.value.isNotEmpty() && userEmail.isNotEmpty() && userPhoneNo.value.isNotEmpty() && password.value.isNotEmpty()) {
-                            auth.createUserWithEmailAndPassword(userEmail,password.value).addOnCompleteListener {
-                                    task ->
-                                if(task.isSuccessful)
-                                {
-                                    val uid = task.result?.user?.uid
-                                    scope.launch {
-                                        val responseBody = userApiObj.createUser(UserInfo(uid.toString(),userName.value,userPhoneNo.value,userEmail,
-                                            emptyList()))
-                                        if(responseBody.isSuccessful)
-                                        {
-                                            createUserStatus.value = responseBody.body()?.string()?:"No response"
-                                            Toast.makeText(myContext,"account status : ${createUserStatus.value}",Toast.LENGTH_LONG).show()
-                                            navController.popBackStack()
-
-                                        }
-                                        else{
-                                            createUserStatus.value = "Error : ${responseBody.message()}"
-                                            Toast.makeText(myContext,"account status : ${createUserStatus.value}",Toast.LENGTH_LONG).show()
-
-                                        }
-
-                                    }
-
-                                }
-                                else{
-                                    Toast.makeText(myContext,"account not created : ${task.exception?.message.toString()}",Toast.LENGTH_LONG).show()
-                                }
-                            }.addOnFailureListener {
-                                exception ->
-                                Toast.makeText(myContext,"account not created : ${exception.message}",Toast.LENGTH_LONG).show()
-
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Exception: ${e.message}", Toast.LENGTH_LONG).show()
                             }
-
-                        }
-                        else{
-                            Toast.makeText(myContext,"Enter All Fields",Toast.LENGTH_SHORT).show()
                         }
 
-
-
-
-
-                    },
-
-                    modifier =
-                        Modifier.wrapContentWidth()
-                            .height(60.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isDarkTheme) Color.White else Color.Black,
-                        contentColor = if (isDarkTheme) Color.Black else Color.White,
-                    ),
-                    shape = RoundedCornerShape(5.dp),
-                ) {
-                    Text(
-                        text = "SignUp",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
-
-
-
+                    } else {
+                        Toast.makeText(context, "Enter all fields correctly", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .height(60.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isDarkTheme) Color.White else Color.Black,
+                    contentColor = if (isDarkTheme) Color.Black else Color.White
+                ),
+                shape = RoundedCornerShape(6.dp)
+            ) {
+                Text("SignUp", fontSize = 18.sp)
             }
-        })
+        }
+    }
 }

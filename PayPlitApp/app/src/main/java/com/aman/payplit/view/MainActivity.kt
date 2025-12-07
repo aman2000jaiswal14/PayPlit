@@ -1,5 +1,6 @@
 package com.aman.payplit.view
 
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -54,6 +55,9 @@ fun PayPlitNavigation(){
         }
         composable(route = "AddMemberInGroup"){
             AddMemberInGroup(navController)
+        }
+        composable(route = "GroupExpensePage"){
+            GroupExpensePage(navController)
         }
 
     }

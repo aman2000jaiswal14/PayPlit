@@ -2,29 +2,10 @@ package com.aman.payplit.view
 
 import android.widget.Toast
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,26 +23,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aman.payplit.R
-import com.aman.payplit.globalPP.AppGlobalObj.auth
-
+import com.aman.payplit.globalPP.AppGlobalObj
+import com.aman.payplit.globalPP.AppGlobalObj.userApiObj
+import com.aman.payplit.model.LoginResponse
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginPage(navController: NavController) {
-    val user = auth.currentUser
-    if(user != null)
-    {
-        navController.navigate("GroupPage")
-    }
-    val userEmail = remember {
-        mutableStateOf("")
-    }
-    val password = remember {
-        mutableStateOf("")
-    }
-    val myContext = LocalContext.current
+    val userEmail = remember { mutableStateOf("aman@gmail.com") }
+    val password = remember { mutableStateOf("Aman@123") }
     val passwordVisible = remember { mutableStateOf(false) }
     val isDarkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -79,12 +57,14 @@ fun LoginPage(navController: NavController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
+                // Email
                 TextField(
-                    value = userEmail.value, onValueChange = {
-                        userEmail.value = it
-                    },
-                    label = { Text(text = "Enter email") },
+                    value = userEmail.value,
+                    onValueChange = { userEmail.value = it },
+                    label = { Text("Enter Email") },
+                    modifier = Modifier.size(300.dp, 60.dp),
+                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
+                    shape = RoundedCornerShape(5.dp),
                     colors = TextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White,
@@ -92,16 +72,19 @@ fun LoginPage(navController: NavController) {
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedContainerColor = colorResource(id = R.color.purple_500)
                     ),
-                    modifier = Modifier.size(300.dp, 60.dp),
-                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
-                    shape = RoundedCornerShape(5.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
-                TextField(value = password.value, onValueChange = {
-                    password.value = it
-                },
-                    label = { Text(text = "Enter Password") },
+
+                // Password
+                TextField(
+                    value = password.value,
+                    onValueChange = { password.value = it },
+                    label = { Text("Enter Password") },
+                    modifier = Modifier.size(300.dp, 60.dp),
+                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
+                    shape = RoundedCornerShape(5.dp),
                     colors = TextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White,
@@ -109,81 +92,80 @@ fun LoginPage(navController: NavController) {
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedContainerColor = colorResource(id = R.color.purple_500)
                     ),
-                    modifier = Modifier.size(300.dp, 60.dp),
-                    textStyle = TextStyle(fontSize = 18.sp, color = Color.White),
-                    shape = RoundedCornerShape(5.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = if (passwordVisible.value) VisualTransformation.None
-                    else PasswordVisualTransformation(),
+                    visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                             Icon(
-                                painter = if (passwordVisible.value) painterResource(id = R.drawable.ic_visibilityoff) else painterResource(
-                                    id = R.drawable.ic_visibility
-                                ), contentDescription = "Toggle password visibility"
+                                painter = if (passwordVisible.value) painterResource(id = R.drawable.ic_visibilityoff) else painterResource(id = R.drawable.ic_visibility),
+                                contentDescription = "Toggle password visibility"
                             )
                         }
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Buttons
                 Row {
                     Button(
                         onClick = {
-                            if(userEmail.value.isNotEmpty() && password.value.isNotEmpty()){
-                                auth.signInWithEmailAndPassword(userEmail.value,password.value).addOnCompleteListener {
-                                    task ->
-                                    if(task.isSuccessful)
-                                    {
-                                        navController.navigate("GroupPage")
-                                    }
-                                    else{
-                                        Toast.makeText(myContext,"Invalid Email or Password",Toast.LENGTH_SHORT).show()
+                            if (userEmail.value.isNotEmpty() && password.value.isNotEmpty()) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        val response = userApiObj.loginUser(
+                                            mapOf("email" to userEmail.value, "password" to password.value)
+                                        )
+
+                                        withContext(Dispatchers.Main) {
+                                            if (response.isSuccessful) {
+                                                val loginResponse = response.body()
+                                                val userId = loginResponse?.data?.userId ?: ""
+
+                                                if (userId.isNotEmpty()) {
+                                                    AppGlobalObj.currentUserId = userId
+//                                                    val sharedPref = context.getSharedPreferences("PayplitPrefs", Context.MODE_PRIVATE)
+//                                                    sharedPref.edit().putString("currentUserId", userId).apply()
+                                                    Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                                    navController.navigate("GroupPage") {
+                                                        popUpTo("LoginPage") { inclusive = true }
+                                                    }
+                                                } else {
+                                                    Toast.makeText(context, "Login failed: No userId returned", Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                Toast.makeText(context, "Login failed: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        withContext(Dispatchers.Main) {
+                                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
                                 }
-                            }
-                            else{
-                                Toast.makeText(myContext,"Enter Email or Password",Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Enter Email and Password", Toast.LENGTH_SHORT).show()
                             }
                         },
-                        modifier =
-                        Modifier
-                            .width(120.dp)
-                            .height(60.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isDarkTheme) Color.White else Color.Black,
-                            contentColor = if (isDarkTheme) Color.Black else Color.White,
-                        ),
-                        shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.width(120.dp).height(60.dp)
                     ) {
-                        Text(
-                            text = "LogIn",
-                            style = MaterialTheme.typography.bodyLarge
-
-                        )
+                        Text("LogIn")
                     }
+
                     Spacer(modifier = Modifier.width(5.dp))
+
                     Button(
                         onClick = { navController.navigate("SignUpPage") },
-                        modifier =
-                        Modifier
-                            .width(120.dp)
-                            .height(60.dp),
+                        modifier = Modifier.width(120.dp).height(60.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isDarkTheme) Color.White else Color.Black,
-                            contentColor = if (isDarkTheme) Color.Black else Color.White,
+                            contentColor = if (isDarkTheme) Color.Black else Color.White
                         ),
-                        shape = RoundedCornerShape(5.dp),
+                        shape = RoundedCornerShape(5.dp)
                     ) {
-                        Text(
-                            text = "SignUp",
-                            style = MaterialTheme.typography.bodyLarge,
-
-                            )
+                        Text("SignUp", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
-
-
             }
         }
     )
