@@ -34,8 +34,8 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginPage(navController: NavController) {
-    val userEmail = remember { mutableStateOf("aman@gmail.com") }
-    val password = remember { mutableStateOf("Aman@123") }
+    val userEmail = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
     val passwordVisible = remember { mutableStateOf(false) }
     val isDarkTheme = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -165,6 +165,37 @@ fun LoginPage(navController: NavController) {
                     ) {
                         Text("SignUp", style = MaterialTheme.typography.bodyLarge)
                     }
+
+                    Button(
+                        onClick = {
+
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        val response = userApiObj.testUser()
+
+
+                                        withContext(Dispatchers.Main) {
+                                            if (response.isSuccessful) {
+                                                val testResponse = response.body()
+                                                Toast.makeText(context, "test success: ${response.message()}", Toast.LENGTH_SHORT).show()
+
+                                            } else {
+                                                Toast.makeText(context, "test failed: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        withContext(Dispatchers.Main) {
+                                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+
+                        },
+                        modifier = Modifier.width(120.dp).height(60.dp)
+                    ) {
+                        Text("test")
+                    }
+
                 }
             }
         }

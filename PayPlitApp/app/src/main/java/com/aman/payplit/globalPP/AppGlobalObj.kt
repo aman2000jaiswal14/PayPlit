@@ -11,7 +11,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object AppGlobalObj {
 
-    val baseUrl = "http://192.168.29.141:7000"
+    val baseUrl = "https://apirepo-zwdt.onrender.com"
+    //val baseUrl = "http://192.168.29.141:7000"
     val retrofitObj = Retrofit.Builder()
         .baseUrl(baseUrl)
         .addConverterFactory(GsonConverterFactory.create())

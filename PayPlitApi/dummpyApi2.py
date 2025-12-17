@@ -8,9 +8,8 @@ import time
 # 🔥 FIREBASE INITIALIZATION
 # -----------------------------
 try:
-    cred = credentials.Certificate(
-        r"C:\Users\aman2\Desktop\F\git_test\config\firebase.json"
-    )
+    cred_path = os.path.join(os.path.dirname(__file__), "firebase.json")
+    cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(
         cred,
         {"databaseURL": "https://myproject-b3962-default-rtdb.firebaseio.com/"}
@@ -787,4 +786,5 @@ def delete_group():
 # 🔥 SERVER RUN
 # -----------------------------
 if __name__ == "__main__":
-    app.run("192.168.29.141", port=7000, debug=True)
+    port = int(os.environ.get("PORT", 7000))
+    app.run(host="0.0.0.0", port=port, debug=True)

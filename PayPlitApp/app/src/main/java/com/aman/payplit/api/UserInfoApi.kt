@@ -16,6 +16,9 @@ interface UserInfoApi {
     @POST("/users/create")
     suspend fun createUser(@Body request: UserInfo): Response<ResponseBody>
 
+    @GET("/")
+    suspend fun testUser(): Response<ResponseBody>
+
     @POST("/users/login")
     suspend fun loginUser(@Body loginRequest: Map<String, String>): Response<LoginResponse>
 
