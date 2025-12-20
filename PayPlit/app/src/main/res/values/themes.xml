@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.PayPlit" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- The Splash Screen Theme -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Background of the whole screen -->
+        <item name="windowSplashScreenBackground">#6C63FF</item>
+
+        <!-- 🔥 CHANGE THIS: Use the new rounded drawable, not the raw PNG -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_rounded</item>
+
+        <!-- The theme to switch to after the splash -->
+        <item name="postSplashScreenTheme">@style/Theme.PayPlit</item>
+    </style>
+
+</resources>
