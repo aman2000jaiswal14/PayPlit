@@ -24,6 +24,7 @@ import javax.inject.Inject
 
 data class AddItemState(
     val isLoading: Boolean = false,
+    val selectedPayerId: String? = null, // 🔥 Track who paid
     val members: List<UserDto> = emptyList(),
     val error: String? = null,
     val isSuccess: Boolean = false
@@ -55,25 +56,28 @@ class AddItemViewModel @Inject constructor(
     private fun fetchMembers() {
         viewModelScope.launch {
             repository.getGroupMembers(groupId).onEach { result ->
-                when (result) {
-                    is Resource.Loading -> _state.value = _state.value.copy(isLoading = true)
-                    is Resource.Success -> {
-                        val data = result.data ?: emptyList()
-                        _state.value = _state.value.copy(isLoading = false, members = data)
+                if (result is Resource.Success) {
+                    val data = result.data ?: emptyList()
+                    val currentUserId = sessionManager.getUserId() ?: ""
 
-                        // Initialize Split UI states
-                        splitValues.clear()
-                        splitValues.addAll(List(data.size) { "0" })
-                        memberSelected.clear()
-                        memberSelected.addAll(List(data.size) { true })
-                    }
-                    is Resource.Error -> {
-                        _state.value = _state.value.copy(isLoading = false, error = result.message)
-                    }
+                    _state.value = _state.value.copy(
+                        members = data,
+                        selectedPayerId = currentUserId // Default: Current user paid
+                    )
+
+                    splitValues.clear()
+                    splitValues.addAll(List(data.size) { "0" })
+                    memberSelected.clear()
+                    memberSelected.addAll(List(data.size) { true })
                 }
             }.launchIn(this)
         }
     }
+
+    fun onPayerSelected(uid: String) {
+        _state.value = _state.value.copy(selectedPayerId = uid)
+    }
+
 
     fun onMemberCheckedChange(index: Int, isSelected: Boolean, isEquallyMode: Boolean) {
         memberSelected[index] = isSelected
@@ -111,17 +115,15 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun submitExpense() {
-        val currentUserId = sessionManager.getUserId() ?: ""
-
         val request = AddItemRequest(
             itemName = expenseName,
             itemTotalAmount = totalAmount.toDoubleOrNull() ?: 0.0,
-            itemPayer = listOf(currentUserId),
+            itemPayer = listOf(_state.value.selectedPayerId ?: ""),
             itemSpliter = _state.value.members.map { it.userId },
             itemSpliterValue = splitValues.map { it.toDoubleOrNull() ?: 0.0 },
             itemGroupId = groupId,
-            itemDateUpdate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
-            itemTimeUpdate = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+            itemDateUpdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date()),
+            itemTimeUpdate = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         )
 
         viewModelScope.launch {

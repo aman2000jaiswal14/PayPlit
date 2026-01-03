@@ -6,24 +6,36 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
+import com.aman.payplit.presentation.MainViewModel
 import com.aman.payplit.presentation.navigation.PayPlitNavigation
 import com.aman.payplit.ui.theme.PayPlitTheme
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var mainViewModel: MainViewModel // Inject the session check logic
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 🔥 This handles the transition from Splash to App
-        val splashScreen = installSplashScreen()
+        // Install Splash Screen
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             PayPlitTheme {
                 val navController = rememberNavController()
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    PayPlitNavigation(navController = navController)
+                    // 🔥 Pass the dynamic start destination to your NavGraph
+                    PayPlitNavigation(
+                        navController = navController,
+                        startDestination = mainViewModel.startDestination.value
+                    )
                 }
             }
         }

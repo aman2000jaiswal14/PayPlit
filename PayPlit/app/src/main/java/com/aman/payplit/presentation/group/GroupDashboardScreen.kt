@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -16,11 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.aman.payplit.data.remote.dto.GroupDto
 import com.aman.payplit.presentation.navigation.Screen
@@ -34,6 +38,18 @@ fun GroupDashboardScreen(
     val state by viewModel.state.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
     var groupToDelete by remember { mutableStateOf<GroupDto?>(null) }
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // Refresh silently (isPullToRefresh = true inside ViewModel handles the flags)
+                viewModel.loadGroups(isPullToRefresh = true)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // --- DELETE CONFIRMATION DIALOG ---
     if (groupToDelete != null) {
@@ -61,7 +77,7 @@ fun GroupDashboardScreen(
             TopAppBar(
                 title = { Text("PayPlit Groups", fontWeight = FontWeight.Bold) },
                 actions = {
-                    IconButton(onClick = { viewModel.loadGroups() }) {
+                    IconButton(onClick = { viewModel.loadGroups(isPullToRefresh = true) }) {
                         Icon(Icons.Default.Refresh, "Refresh")
                     }
                     IconButton(onClick = { showMenu = true }) {
@@ -71,8 +87,12 @@ fun GroupDashboardScreen(
                         DropdownMenuItem(
                             text = { Text("Logout") },
                             onClick = {
-                                viewModel.logout()
-                                navController.navigate(Screen.Login.route) { popUpTo(0) }
+                                showMenu = false
+                                viewModel.logout(onComplete = {
+                                    navController.navigate(Screen.Login.route) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                })
                             }
                         )
                     }
@@ -85,32 +105,51 @@ fun GroupDashboardScreen(
             }
         }
     ) { padding ->
+        // 🔥 PullToRefreshBox handles the top spinner automatically via state.isRefreshing
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = { viewModel.loadGroups(isPullToRefresh = true) },
             modifier = Modifier.padding(padding).fillMaxSize()
         ) {
-            if (state.isLoading) CircularProgressIndicator(Modifier.align(Alignment.Center))
+            Box(modifier = Modifier.fillMaxSize()) {
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(
-                    items = state.groups,
-                    key = { it.groupId }
-                ) { group ->
-                    SwipeableGroupCard(
-                        group = group,
-                        onDeleteRequest = { groupToDelete = group },
-                        onClick = { navController.navigate(Screen.GroupDetails.createRoute(group.groupId)) }
+                // 🔥 INDUSTRY FIX: Only show Center Spinner if explicitly loading AND database is empty
+                if (state.isLoading && state.groups.isEmpty()) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                // Empty State: Only show if not loading and list is actually empty
+                if (!state.isLoading && !state.isRefreshing && state.groups.isEmpty() && state.error == null) {
+                    Text(
+                        text = "No groups yet. Tap + to start!",
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.align(Alignment.Center)
                     )
+                }
+
+                // Group List
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(
+                        items = state.groups,
+                        key = { it.groupId }
+                    ) { group ->
+                        SwipeableGroupCard(
+                            group = group,
+                            onDeleteRequest = { groupToDelete = group },
+                            onClick = { navController.navigate("group_session/${group.groupId}") }
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +162,7 @@ fun SwipeableGroupCard(
         confirmValueChange = { value ->
             if (value != SwipeToDismissBoxValue.Settled) {
                 onDeleteRequest()
-                false // Don't dismiss until confirmed
+                false // Snaps back, dialog handles actual delete
             } else false
         }
     )
@@ -171,7 +210,7 @@ fun GroupCard(group: GroupDto, onClick: () -> Unit) {
                 Text(group.groupName ?: "Unnamed", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text("${group.groupMembers?.size ?: 0} members", style = MaterialTheme.typography.bodySmall)
             }
-            Icon(Icons.Default.KeyboardArrowRight, null)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
         }
     }
 }

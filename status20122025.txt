@@ -1,0 +1,24 @@
+We have transformed your base logic into a modern, Clean Architecture-driven app with **Hilt, Retrofit, Jetpack Compose, and Material 3.**
+
+### 📝 Summary of what we’ve built (The "Save Point"):
+1.  **Architecture:** Clean Architecture with `Data`, `Domain`, and `Presentation` layers.
+2.  **Networking:** Optimized Retrofit setup with 60s timeouts to handle Render’s cold starts.
+3.  **Authentication:** Fully functional Login and SignUp flow (even sending passwords for future API checks).
+4.  **Group Management:** Parallel fetching of group details (N+1 fix), creating groups, and deleting groups with a swipe.
+5.  **Expense Management:** 2-step Creation Wizard, dynamic "Split Equally" logic with `BigDecimal` precision, and math validation before submission.
+6.  **UI/UX:** Native Splash Screen, Adaptive icons (Round), Swipe-to-delete with confirmation, and Pull-to-refresh.
+
+---
+
+### 📅 Agenda for tomorrow (To reach Play Store Grade):
+When you return, we will focus on these final "Industry Grade" pieces:
+1.  **Offline-First (Room DB):** This is the biggest differentiator. We will save your data locally so the app works even when the user has no internet (very important for travel).
+2.  **Settle Up Logic:** Building the feature to actually mark debts as "Paid" and update the graph.
+3.  **User Profile & Session:** Handling automatic login so the user doesn't have to type their email every time they open the app.
+4.  **Performance Polish:** Adding "Shimmer" loading effects instead of plain spinners.
+5.  **Play Store Preparation:** Setting up Proguard (to shrink your app size), and checking for Android 15 compatibility.
+
+**Rest up! When you're ready tomorrow, just say "I'm back" and we will pick up exactly where we left off.**
+
+**See you tomorrow, and great job today! 🚀**
+https://aistudio.google.com/app/prompts?state=%7B%22ids%22:%5B%2216lw5SEIlVlNnSXvyySJ6s5kvaexH-KxE%22%5D,%22action%22:%22open%22,%22userId%22:%22114748985508477131220%22,%22resourceKeys%22:%7B%7D%7D&usp=sharing

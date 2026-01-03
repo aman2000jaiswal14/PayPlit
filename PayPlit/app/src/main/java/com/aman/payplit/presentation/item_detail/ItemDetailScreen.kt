@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -46,59 +47,102 @@ fun ItemDetailScreen(
         }
 
         state.item?.let { item ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp)
-            ) {
-                // 1. Header Card (Receipt Style)
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            val isPayment = item.itemType == "PAYMENT"
+            if (isPayment) {
+                // 🔥 PAYMENT RECEIPT VIEW
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Payments, null, modifier = Modifier.size(64.dp), tint = Color(0xFF4CAF50))
+                    Text("Cash Payment", style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        "${item.itemPayerNames.firstOrNull()} paid ${item.itemSpliterNames.firstOrNull()}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text("Amount: ₹${item.itemTotalAmount}", fontWeight = FontWeight.Bold)
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    // 1. Header Card (Receipt Style)
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                     ) {
-                        Text(item.itemName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        Text("₹${item.itemTotalAmount}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CalendarMonth, null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("${item.itemDateUpdate} at ${item.itemTimeUpdate}", style = MaterialTheme.typography.bodySmall)
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                item.itemName,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "₹${item.itemTotalAmount}",
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.CalendarMonth,
+                                    null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    "${item.itemDateUpdate} at ${item.itemTimeUpdate}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
-                }
 
-                Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(24.dp))
 
-                Text("Split Breakdown", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Split Breakdown",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(12.dp))
 
-                // 2. Split List
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    itemsIndexed(item.itemSpliter) { index, userId ->
-                        val name = state.members.find { it.userId == userId }?.name ?: "Unknown"
-                        val amount = item.itemSpliterValue.getOrNull(index) ?: 0.0
+                    val splitterNames = item.itemSpliterNames
+                    val splitterValues = item.itemSpliterValue ?: emptyList()
+                    // 2. Split List
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // 🔥 We now iterate using itemSpliterNames directly!
+                        itemsIndexed(item.itemSpliterNames) { index, name ->
+                            val amount = splitterValues.getOrNull(index) ?: 0.0
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.outline)
-                                Spacer(Modifier.width(12.dp))
-                                Text(name, fontSize = 18.sp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.outline
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    // 🔥 No more .find { it.userId == ... } lookup!
+                                    Text(text = name, fontSize = 18.sp)
+                                }
+                                Text(
+                                    text = "₹$amount",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
                             }
-                            Text("₹$amount", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                         }
-                        HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                     }
                 }
             }

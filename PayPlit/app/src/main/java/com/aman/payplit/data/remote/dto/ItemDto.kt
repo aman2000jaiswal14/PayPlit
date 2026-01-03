@@ -8,30 +8,21 @@ import com.google.gson.annotations.SerializedName
  * sends incomplete data.
  */
 data class ItemDto(
-    @SerializedName("itemId")
-    val itemId: String,
+    @SerializedName("itemId") val itemId: String,
+    @SerializedName("itemName") val itemName: String,
+    @SerializedName("itemTotalAmount") val itemTotalAmount: Double,
+    @SerializedName("itemGroupId") val itemGroupId: String,
+    @SerializedName("itemDateUpdate") val itemDateUpdate: String,
+    @SerializedName("itemTimeUpdate") val itemTimeUpdate: String,
 
-    @SerializedName("itemName")
-    val itemName: String,
+    // IDs
+    @SerializedName("itemPayer") val itemPayer: List<String>,
+    @SerializedName("itemSpliter") val itemSpliter: List<String>,
+    @SerializedName("itemSpliterValue") val itemSpliterValue: List<Double>? = emptyList(),
 
-    @SerializedName("itemTotalAmount")
-    val itemTotalAmount: Double,
+    // 🔥 NEW: Denormalized Names
+    @SerializedName("itemPayerNames") val itemPayerNames: List<String> = emptyList(),
+    @SerializedName("itemSpliterNames") val itemSpliterNames: List<String> = emptyList(),
 
-    @SerializedName("itemPayer")
-    val itemPayer: List<String> = emptyList(),
-
-    @SerializedName("itemSpliter")
-    val itemSpliter: List<String> = emptyList(),
-
-    @SerializedName("itemSpliterValue")
-    val itemSpliterValue: List<Double> = emptyList(),
-
-    @SerializedName("itemGroupId")
-    val itemGroupId: String,
-
-    @SerializedName("itemDateUpdate")
-    val itemDateUpdate: String,
-
-    @SerializedName("itemTimeUpdate")
-    val itemTimeUpdate: String
+    @SerializedName("itemType") val itemType: String? = "EXPENSE"
 )

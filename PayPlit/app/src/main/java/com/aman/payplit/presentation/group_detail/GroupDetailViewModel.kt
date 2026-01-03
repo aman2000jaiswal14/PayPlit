@@ -24,6 +24,10 @@ class GroupDetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(GroupDetailState())
     val state = _state.asStateFlow()
 
+    private var currentOffset = 0
+    private val PAGE_SIZE = 10
+    private var isEndReached = false
+
     val groupId: String = savedStateHandle.get<String>("groupId") ?: ""
 
     init {
@@ -32,13 +36,21 @@ class GroupDetailViewModel @Inject constructor(
 
     fun refreshData(isManual: Boolean = true) {
         val userId = sessionManager.getUserId() ?: ""
+        currentOffset = 0
+        isEndReached = false
+
         viewModelScope.launch {
             itemRepository.getGroupData(groupId, userId).onEach { result ->
                 when (result) {
                     is Resource.Loading -> {
-                        if (isManual) _state.value = _state.value.copy(isRefreshing = true)
-                        else _state.value = _state.value.copy(isLoading = true)
+                        // 🔥 MUTUAL EXCLUSION LOGIC
+                        if (_state.value.items.isEmpty()) {
+                            _state.value = _state.value.copy(isLoading = true, isRefreshing = false)
+                        } else {
+                            _state.value = _state.value.copy(isRefreshing = true, isLoading = false)
+                        }
                     }
+
                     is Resource.Success -> {
                         _state.value = _state.value.copy(
                             items = result.data?.first ?: emptyList(),
@@ -46,9 +58,15 @@ class GroupDetailViewModel @Inject constructor(
                             isLoading = false,
                             isRefreshing = false
                         )
+                        currentOffset = 10
                     }
+
                     is Resource.Error -> {
-                        _state.value = _state.value.copy(isLoading = false, isRefreshing = false, error = result.message)
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            error = result.message
+                        )
                     }
                 }
             }.launchIn(this)
@@ -59,21 +77,57 @@ class GroupDetailViewModel @Inject constructor(
         viewModelScope.launch {
             itemRepository.deleteItem(itemId).onEach { result ->
                 when (result) {
+                    is Resource.Loading -> {
+                        _state.value = _state.value.copy(isLoading = true)
+                    }
+
                     is Resource.Success -> {
                         _state.value = _state.value.copy(userMessage = "Item deleted successfully")
                         refreshData(isManual = true)
                     }
+
                     is Resource.Error -> {
-                        _state.value = _state.value.copy(error = "Delete failed")
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = result.message ?: "Delete failed"
+                        )
                     }
-                    else -> {}
                 }
             }.launchIn(this)
         }
     }
 
-    // Call this to clear the message after showing it
     fun onMessageShown() {
         _state.value = _state.value.copy(userMessage = null)
+    }
+
+    fun loadNextItems() {
+        if (_state.value.isLoading || _state.value.isRefreshing || isEndReached) return
+
+        viewModelScope.launch {
+            itemRepository.getItemsPaginated(groupId, PAGE_SIZE, currentOffset).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _state.value =
+                            _state.value.copy(isPaginationLoading = true) // 🔥 Use pagination flag
+                    }
+
+                    is Resource.Success -> {
+                        val newItems = result.data ?: emptyList()
+                        if (newItems.isEmpty()) isEndReached = true
+
+                        _state.value = _state.value.copy(
+                            items = _state.value.items + newItems,
+                            isPaginationLoading = false
+                        )
+                        currentOffset += PAGE_SIZE
+                    }
+
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(isPaginationLoading = false)
+                    }
+                }
+            }
+        }
     }
 }
